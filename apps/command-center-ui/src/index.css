@@ -1,51 +1,79 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Consolas', 'Courier New', monospace;
   line-height: 1.5;
   font-weight: 400;
 
   color-scheme: dark;
-  color: #E2E8F0;
-  background-color: #0A0A0A;
+  color: #d4e1f0;
+  background-color: #010204;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  /* Theme tokens */
-  --bg-primary: #050505;
-  --bg-secondary: #0A0A0A;
-  --bg-card: rgba(18, 18, 18, 0.7);
-  --border-glass: rgba(255, 255, 255, 0.05);
-  --border-glass-hover: rgba(255, 255, 255, 0.1);
-
-  /* Neon accents */
-  --neon-cyan: #06B6D4;
-  --neon-cyan-dim: rgba(6, 182, 212, 0.15);
-  --neon-green: #10B981;
-  --neon-green-dim: rgba(16, 185, 129, 0.15);
-  --neon-amber: #F59E0B;
-  --neon-amber-dim: rgba(245, 158, 11, 0.15);
-  --neon-red: #EF4444;
-  --neon-red-dim: rgba(239, 68, 68, 0.15);
+  /* Theme tokens - Vibrant Saturated Neons */
+  --bg: #010204;
+  --cyan: #00d2ff;
+  --cyan-glow: rgba(0, 210, 255, 0.4);
+  --green: #00e676;
+  --green-glow: rgba(0, 230, 118, 0.4);
+  --amber: #ffab00;
+  --amber-glow: rgba(255, 171, 0, 0.4);
+  --magenta: #ff4081;
+  --magenta-glow: rgba(255, 64, 129, 0.4);
+  --purple: #d500f9;
+  --purple-glow: rgba(213, 0, 249, 0.4);
+  --red: #ff1744;
+  --red-glow: rgba(255, 23, 68, 0.4);
+  --blue: #2979ff;
+  --blue-glow: rgba(41, 121, 255, 0.4);
+  --white: #e0f7fa;
+  --white-glow: rgba(224, 247, 250, 0.4);
+  --pink: #ff4081;
+  --pink-glow: rgba(255, 64, 129, 0.4);
   
-  --text-muted: #8E9CAE;
+  --panel-bg: rgba(2, 4, 8, 0.95);
+  --border: rgba(255, 255, 255, 0.07);
+  --text-muted: #5b7089;
 }
 
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 body {
   min-height: 100vh;
-  background: radial-gradient(circle at 50% 0%, #151d29 0%, #050505 60%);
-  overflow-x: hidden;
+  background: var(--bg);
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
 }
 
 #root {
   min-height: 100vh;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.3);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0,210,255,0.2);
+  border-radius: 2px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,210,255,0.5);
 }
