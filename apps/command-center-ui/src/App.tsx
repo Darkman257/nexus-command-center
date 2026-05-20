@@ -116,6 +116,10 @@ function App() {
   const [cpuUsage, setCpuUsage] = useState(28.7);
   const [ramLoad, setRamLoad] = useState(42.9);
 
+  // Dynamic status states for bridge connection
+  const [bridgeOnline, setBridgeOnline] = useState<boolean>(false);
+  const [telegramError, setTelegramError] = useState<string | null>(null);
+
   // Floating Launcher States
   const [isLauncherCollapsed, setIsLauncherCollapsed] = useState(false);
   const [launcherOffset, setLauncherOffset] = useState<{ x: number; y: number } | null>(null);
@@ -146,22 +150,139 @@ function App() {
     { time: '12:33:49 PM', msg: 'Package setup completed: react/react-dom dependencies configured', type: 'system' },
   ]);
 
+  // Safe Bridge API Fetch Helper
+  const callBridgeAPI = async (endpoint: string, method: string = 'GET', body?: any) => {
+    try {
+      const res = await fetch(`http://localhost:9999/api/${endpoint}`, {
+        method,
+        headers: body ? { 'Content-Type': 'application/json' } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+        mode: 'cors'
+      });
+      if (res.ok) {
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return await res.json();
+        }
+        return await res.text();
+      }
+    } catch (err) {
+      console.warn(`Bridge call failed for ${endpoint}:`, err);
+    }
+    return null;
+  };
+
+  const getNodeUrl = (id: string): string | null => {
+    switch (id) {
+      case 'omega':
+        return 'http://127.0.0.1:3000';
+      case 'recruit':
+        return 'http://127.0.0.1:3820';
+      case 'api_server':
+        return 'http://127.0.0.1:5001/api/healthz';
+      case 'telegram_agent':
+        return 'http://localhost:9999/api/telegram-status';
+      case 'bridge':
+        return 'http://localhost:9999/api/ping';
+      default:
+        return null;
+    }
+  };
+
   const fetchOmegaHealth = async () => {
     setIsRefreshing(true);
+    
+    // Direct Omega health check
     const result = await checkOmegaStatus();
     setOmegaStatus(result);
-    setIsRefreshing(false);
 
-    // Update nodes status mapping dynamically
-    setNodes(prev => prev.map(n => {
-      if (n.id === 'omega') {
-        return { ...n, stat: result.status.toUpperCase() };
+    // Call Bridge Telemetry
+    const pingRes = await callBridgeAPI('ping');
+    const isBridgeUp = pingRes === 'SYSTEM ONLINE';
+    setBridgeOnline(isBridgeUp);
+    
+    let sysLogMsg = `Telemetry Poll - Bridge Daemon: ${isBridgeUp ? 'ONLINE' : 'OFFLINE'}`;
+
+    if (isBridgeUp) {
+      // 1. RAM load from /sys
+      const ramRes = await callBridgeAPI('sys');
+      if (ramRes && !isNaN(parseFloat(ramRes))) {
+        setRamLoad(parseFloat(parseFloat(ramRes).toFixed(1)));
       }
-      if (n.id === 'api_server') {
-        return { ...n, stat: result.status === 'online' ? 'ACTIVE' : 'OFFLINE' };
+
+      // 2. Recruit Status
+      const recruitStatus = await callBridgeAPI('recruit-status');
+      let recruitStatStr = 'STANDBY';
+      if (recruitStatus && typeof recruitStatus === 'object') {
+        recruitStatStr = recruitStatus.isRunning ? 'ACTIVE' : 'OFFLINE';
       }
-      return n;
-    }));
+
+      // 3. API Server Status
+      const apiStatus = await callBridgeAPI('api-server-status');
+      let apiStatStr = 'OFFLINE';
+      if (apiStatus && typeof apiStatus === 'object') {
+        apiStatStr = apiStatus.isRunning ? 'ACTIVE' : 'OFFLINE';
+      }
+
+      // 4. Telegram status
+      const telStatus = await callBridgeAPI('telegram-status');
+      let telStatStr = 'STANDBY';
+      if (telStatus && typeof telStatus === 'object') {
+        telStatStr = telStatus.running ? 'ACTIVE' : 'STOPPED';
+        if (telStatus.last_log_lines) {
+          const errors = telStatus.last_log_lines.filter((l: string) => l.toLowerCase().includes('error') || l.toLowerCase().includes('exception'));
+          if (errors.length > 0) {
+            const cleanErr = errors[errors.length - 1].replace(/\d{8,10}:[A-Za-z0-9_-]{35,45}/g, '<REDACTED_TOKEN>');
+            setTelegramError(cleanErr);
+          } else {
+            setTelegramError(null);
+          }
+        }
+      }
+
+      // 5. Git Status check
+      const gitRes = await callBridgeAPI('git-check');
+      let gitStatStr = 'UNKNOWN';
+      if (gitRes && typeof gitRes === 'string') {
+        if (gitRes.toLowerCase().includes('working tree clean')) {
+          gitStatStr = 'CLEAN';
+        } else if (gitRes.toLowerCase().includes('changes to be committed') || gitRes.toLowerCase().includes('changes not staged for commit') || gitRes.toLowerCase().includes('untracked files')) {
+          gitStatStr = 'DIRTY';
+        }
+      }
+
+      // Update nodes dynamically
+      setNodes(prev => prev.map(n => {
+        switch (n.id) {
+          case 'bridge':
+            return { ...n, stat: 'ACTIVE' };
+          case 'recruit':
+            return { ...n, stat: recruitStatStr };
+          case 'api_server':
+            return { ...n, stat: apiStatStr };
+          case 'telegram_agent':
+            return { ...n, stat: telStatStr };
+          case 'git_stat':
+            return { ...n, stat: gitStatStr };
+          case 'omega':
+            return { ...n, stat: result.status.toUpperCase() };
+          default:
+            return n;
+        }
+      }));
+    } else {
+      // Bridge daemon offline
+      setNodes(prev => prev.map(n => {
+        if (['bridge', 'recruit', 'api_server', 'telegram_agent', 'git_stat'].includes(n.id)) {
+          return { ...n, stat: n.id === 'bridge' ? 'OFFLINE' : 'UNAVAILABLE' };
+        }
+        if (n.id === 'omega') {
+          return { ...n, stat: result.status.toUpperCase() };
+        }
+        return n;
+      }));
+      setTelegramError('NEXUS Bridge Daemon is offline.');
+    }
 
     const now = new Date();
     const timeStr = now.toLocaleTimeString();
@@ -170,83 +291,127 @@ function App() {
     
     setLogs(prev => [
       ...prev,
-      { time: timeStr, msg: logMsg, type: result.status === 'online' ? 'info' : 'alert' }
+      { time: timeStr, msg: logMsg, type: result.status === 'online' ? 'info' : 'alert' },
+      { time: timeStr, msg: sysLogMsg, type: isBridgeUp ? 'system' : 'alert' }
     ]);
+    
+    setIsRefreshing(false);
   };
 
-  const handleExecute = (action: string, componentLabel: string) => {
+  const handleExecute = async (action: string, componentLabel: string) => {
     const now = new Date();
     const timeStr = now.toLocaleTimeString();
     let message = '';
     let type: 'info' | 'system' | 'alert' = 'info';
 
+    let endpoint = '';
     switch (action) {
-      case 'ping':
-        message = `PING [Gateway 9999]: RTT=1.45ms TTL=64. Operational.`;
-        break;
-      case 'status':
-        message = `${componentLabel} Status check requested. Core status: NOMINAL.`;
-        break;
-      case 'run-recruit':
-      case 'open-recruit':
-      case 'build-recruit':
-      case 'recruit-status':
-        message = `Recruit HQ Intake pipeline action triggered: [${action}].`;
-        type = 'system';
-        break;
-      case 'run-api-server':
-      case 'build-api-server':
-      case 'api-server-status':
-        message = `API Gate command sent: [${action}]. Port 5001 checking live channel...`;
-        type = 'system';
-        fetchOmegaHealth();
-        break;
-      case 'run-omega':
-      case 'open-omega':
-      case 'build-omega':
-      case 'omega-status':
-      case 'launch-omega':
-        message = `Omega Operations dashboard dispatcher invoked: [${action}].`;
-        fetchOmegaHealth();
-        break;
-      case 'run-sally':
-      case 'open-sally':
-      case 'build-sally':
-      case 'sally-status':
-      case 'launch-recruitment':
-        message = `Recruitment Hub integration event: [${action}]. Simulation response: STANDBY.`;
-        break;
-      case 'git-check':
-        message = `Git status query: Repository clean. Branch 'main' matched with remote origin.`;
-        break;
       case 'telegram-start':
       case 'run-telegram':
-        message = `Telegram Daemon engine started successfully. Listening for webhooks.`;
-        type = 'info';
+        endpoint = 'run-telegram';
         break;
       case 'telegram-stop':
       case 'stop-telegram':
-        message = `Telegram Daemon thread stopped. Socket closed.`;
-        type = 'alert';
+        endpoint = 'stop-telegram';
         break;
-      case 'telegram-health':
-        message = `Telegram health probe returned OK. Services idle.`;
+      case 'restart-telegram':
+        endpoint = 'restart-telegram';
         break;
       case 'telegram-logs':
-        message = `Fetched Telegram logs: 0 warnings, 0 fatal exceptions.`;
+        endpoint = 'telegram-logs';
         break;
-      case 'runtime-open':
-      case 'runtime-open-timeline':
-        message = `Nexus Runtime telemetry connection: open stream status ACTIVE.`;
+      case 'telegram-health':
+        endpoint = 'telegram-status';
         break;
+
+      case 'run-recruit':
+      case 'run-recruitment':
+        endpoint = 'run-recruitment';
+        break;
+      case 'open-recruit':
+      case 'open-recruitment':
+        endpoint = 'open-recruitment';
+        break;
+      case 'build-recruit':
+      case 'build-recruitment':
+        endpoint = 'build-recruitment';
+        break;
+      case 'recruit-status':
+      case 'recruitment-status':
+        endpoint = 'recruit-status';
+        break;
+
+      case 'run-api-server':
+        endpoint = 'run-api-server';
+        break;
+      case 'build-api-server':
+        endpoint = 'build-api-server';
+        break;
+      case 'api-server-status':
+        endpoint = 'api-server-status';
+        break;
+
+      case 'run-omega':
+        endpoint = 'run-omega';
+        break;
+      case 'open-omega':
+        endpoint = 'open-omega';
+        break;
+      case 'build-omega':
+        endpoint = 'build-omega';
+        break;
+      case 'omega-status':
+      case 'status':
+        endpoint = 'status';
+        break;
+      case 'launch-omega':
+        endpoint = 'launch-omega';
+        break;
+
+      case 'git-check':
+        endpoint = 'git-check';
+        break;
+
       default:
-        message = `Payload dispatched: [${action}] to target [${componentLabel}].`;
+        break;
     }
 
-    setLogs(prev => [
-      ...prev,
-      { time: timeStr, msg: message, type }
-    ]);
+    if (endpoint) {
+      message = `DISPATCHING COMMAND: [${action}] to ${componentLabel}...`;
+      setLogs(prev => [
+        { time: timeStr, msg: message, type: 'system' },
+        ...prev.slice(0, 19)
+      ]);
+
+      const res = await callBridgeAPI(endpoint);
+      const doneTime = new Date().toLocaleTimeString();
+      if (res !== null) {
+        let displayRes = typeof res === 'object' ? JSON.stringify(res) : String(res);
+        displayRes = displayRes.replace(/\d{8,10}:[A-Za-z0-9_-]{35,45}/g, '<REDACTED_TOKEN>');
+        
+        if (displayRes.length > 120) {
+          displayRes = displayRes.substring(0, 120) + '...';
+        }
+        
+        setLogs(prev => [
+          { time: doneTime, msg: `COMMAND RESPONSE: ${displayRes}`, type: 'info' },
+          ...prev.slice(0, 19)
+        ]);
+
+        await fetchOmegaHealth();
+      } else {
+        setLogs(prev => [
+          { time: doneTime, msg: `COMMAND FAILED: Bridge daemon did not respond or returned error.`, type: 'alert' },
+          ...prev.slice(0, 19)
+        ]);
+      }
+    } else {
+      message = `Payload dispatched (Simulation): [${action}] to target [${componentLabel}].`;
+      setLogs(prev => [
+        { time: timeStr, msg: message, type },
+        ...prev.slice(0, 19)
+      ]);
+    }
   };
 
   // Clock Update Effect
@@ -585,7 +750,11 @@ function App() {
 
       {/* HEADER HUD */}
       <header className="app-header">
-        <div className="brand-group">
+        <div 
+          className="brand-group" 
+          style={{ cursor: 'pointer' }}
+          onClick={() => window.open('http://127.0.0.1:5177', '_blank')}
+        >
           <span className="brand-title">NEXUS</span>
           <span className="brand-subtitle">HUB COMMANDER // CONTROL CENTER</span>
         </div>
@@ -638,11 +807,14 @@ function App() {
         >
           <div className="panel-header-row">
             <span className="p-lbl">BRIDGE STATUS</span>
-            <div className="p-dot" style={{ background: 'var(--cyan)', boxShadow: '0 0 6px var(--cyan)' }} />
+            <div className="p-dot" style={{ 
+              background: bridgeOnline ? 'var(--cyan)' : 'var(--red)', 
+              boxShadow: bridgeOnline ? '0 0 6px var(--cyan)' : '0 0 6px var(--red)' 
+            }} />
           </div>
-          <div className="metric-val">CONNECTED</div>
-          <div className="metric-sub">Bridge Core Online & Stable</div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setFocusedNodeId('bridge'); }}>OPEN</button>
+          <div className="metric-val">{bridgeOnline ? 'CONNECTED' : 'OFFLINE'}</div>
+          <div className="metric-sub">{bridgeOnline ? 'Bridge Core Online & Stable' : 'Bridge Core Daemon Unreachable'}</div>
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://localhost:9999/api/ping', '_blank'); }}>OPEN</button>
           <div className="hud-strip" style={{ background: 'var(--cyan)' }} />
         </div>
 
@@ -695,7 +867,7 @@ function App() {
               LAST SYNC: {omegaStatus.checkedAt.substring(11, 19)} UTC
             </div>
           </div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setFocusedNodeId('omega'); }}>OPEN</button>
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://127.0.0.1:3000', '_blank'); }}>OPEN</button>
           <div className="hud-strip" style={{ background: omegaStatus.status === 'online' ? 'var(--green)' : 'var(--red)' }} />
         </div>
 
@@ -716,7 +888,7 @@ function App() {
             <div style={{ color: '#5b7089', fontSize: '0.42rem', margin: '2px 0' }}>ROUTE: /api/healthz</div>
             <div style={{ fontSize: '0.42rem', color: '#445467' }}>LAST CHECK: {omegaStatus.checkedAt.substring(11, 19)} UTC</div>
           </div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setFocusedNodeId('api_server'); }}>OPEN</button>
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://127.0.0.1:5001/api/healthz', '_blank'); }}>OPEN</button>
           <div className="hud-strip" style={{ background: omegaStatus.status === 'online' ? 'var(--amber)' : 'var(--red)' }} />
         </div>
 
@@ -729,16 +901,22 @@ function App() {
         >
           <div className="panel-header-row">
             <span className="p-lbl">RECRUIT HUB FEED</span>
-            <div className="p-dot standby" />
+            <div className="p-dot" style={{ 
+              background: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)', 
+              boxShadow: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? '0 0 6px var(--green)' : '0 0 6px var(--red)' 
+            }} />
           </div>
           <div style={{ fontSize: '0.45rem', lineHeight: 1.4 }}>
-            <div>PORT: <span style={{ color: 'var(--purple)', fontWeight: 'bold' }}>STANDBY</span></div>
+            <div>PORT: <span style={{ 
+              color: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)', 
+              fontWeight: 'bold' 
+            }}>{nodes.find(n => n.id === 'recruit')?.stat || 'STANDBY'}</span></div>
             <div>GIT: <span style={{ color: 'var(--green)', fontWeight: 'bold' }}>CLEAN</span></div>
             <div style={{ color: '#5b7089', fontSize: '0.42rem', margin: '2px 0' }}>PATH: <span style={{ color: 'var(--green)', fontWeight: 'bold' }}>READY</span></div>
-            <div style={{ fontSize: '0.42rem', color: '#445467' }}>LAST CHECK: SIMULATION</div>
+            <div style={{ fontSize: '0.42rem', color: '#445467' }}>LAST CHECK: TELEMETRY</div>
           </div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setFocusedNodeId('recruit'); }}>OPEN</button>
-          <div className="hud-strip" style={{ background: 'var(--purple)' }} />
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://127.0.0.1:3820', '_blank'); }}>OPEN</button>
+          <div className="hud-strip" style={{ background: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)' }} />
         </div>
 
         {/* Nexus Runtime */}
@@ -766,7 +944,7 @@ function App() {
               </button>
             </div>
           </div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setFocusedNodeId('runtime'); }}>OPEN</button>
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://localhost:3000/runtime-timeline', '_blank'); }}>OPEN</button>
           <div className="hud-strip" style={{ background: 'var(--cyan)' }} />
         </div>
 
@@ -795,7 +973,7 @@ function App() {
               </button>
             </div>
           </div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setFocusedNodeId('anti'); }}>OPEN</button>
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://localhost:9999/api/repo-library', '_blank'); }}>OPEN</button>
           <div className="hud-strip" style={{ background: 'var(--purple)' }} />
         </div>
       </div>
@@ -883,7 +1061,11 @@ function App() {
           <div className="launcher-section" style={{ marginTop: '1.2rem' }}>
             <div className="launcher-sec-lbl">
               <span>TELEGRAM AGENT</span>
-              <span style={{ color: 'var(--purple)' }}>STANDBY</span>
+              <span style={{ 
+                color: nodes.find(n => n.id === 'telegram_agent')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)'
+              }}>
+                {nodes.find(n => n.id === 'telegram_agent')?.stat || 'STANDBY'}
+              </span>
             </div>
             <button 
               className="btn-launch-primary" 
@@ -904,6 +1086,20 @@ function App() {
               <button className="btn-sub-control" onClick={() => handleExecute('stop-telegram', 'TELEGRAM AGENT')}>Stop</button>
               <button className="btn-sub-control" onClick={() => handleExecute('telegram-logs', 'TELEGRAM AGENT')}>Logs</button>
             </div>
+            {telegramError && (
+              <div className="telegram-error-hud" style={{ 
+                marginTop: '6px', 
+                fontSize: '0.42rem', 
+                color: 'var(--red)', 
+                background: 'rgba(255, 23, 68, 0.05)', 
+                padding: '4px', 
+                border: '1px solid rgba(255, 23, 68, 0.2)',
+                borderRadius: '2px',
+                wordBreak: 'break-all'
+              }}>
+                <strong>ERROR:</strong> {telegramError}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -923,6 +1119,7 @@ function App() {
               style={{
                 left: `${n.x}%`,
                 top: `${n.y}%`,
+                cursor: getNodeUrl(n.id) ? 'pointer' : 'default',
                 // Explicit properties passed as React CSS custom variables
                 ...{
                   '--c': n.c,
@@ -938,6 +1135,13 @@ function App() {
                   { time: now.toLocaleTimeString(), msg: `RADAR LOCK ACQUIRED: ${n.lbl} (${n.sub})`, type: 'info' },
                   ...prev.slice(0, 19) // Cap size of logs list
                 ]);
+              }}
+              onDoubleClick={(e) => {
+                const url = getNodeUrl(n.id);
+                if (url) {
+                  e.stopPropagation();
+                  window.open(url, '_blank');
+                }
               }}
             >
               {/* Luminous background halo */}
