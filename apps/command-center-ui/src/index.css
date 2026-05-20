@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  font-family: 'Outfit', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: #E2E8F0;
+  background-color: #0A0A0A;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Theme tokens */
+  --bg-primary: #050505;
+  --bg-secondary: #0A0A0A;
+  --bg-card: rgba(18, 18, 18, 0.7);
+  --border-glass: rgba(255, 255, 255, 0.05);
+  --border-glass-hover: rgba(255, 255, 255, 0.1);
+
+  /* Neon accents */
+  --neon-cyan: #06B6D4;
+  --neon-cyan-dim: rgba(6, 182, 212, 0.15);
+  --neon-green: #10B981;
+  --neon-green-dim: rgba(16, 185, 129, 0.15);
+  --neon-amber: #F59E0B;
+  --neon-amber-dim: rgba(245, 158, 11, 0.15);
+  --neon-red: #EF4444;
+  --neon-red-dim: rgba(239, 68, 68, 0.15);
+  
+  --text-muted: #8E9CAE;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at 50% 0%, #151d29 0%, #050505 60%);
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
