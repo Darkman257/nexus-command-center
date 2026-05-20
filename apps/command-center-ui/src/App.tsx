@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import { checkOmegaStatus } from '../../../packages/connectors/src/omegaConnector';
+import type { SystemStatus } from '../../../packages/shared-types/src/systemStatus';
 
 interface LogMessage {
   time: string;
@@ -9,18 +11,16 @@ interface LogMessage {
 
 function App() {
   const [currentTime, setCurrentTime] = useState<string>('');
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [omegaStatus, setOmegaStatus] = useState<SystemStatus>({
+    systemId: 'omega-ops',
+    label: 'Omega Ops',
+    status: 'offline',
+    checkedAt: new Date().toISOString(),
+    message: 'Initializing health telemetry...'
+  });
 
-  useEffect(() => {
-    const updateTime = () => {
-      const now = new Date();
-      setCurrentTime(now.toISOString().replace('T', ' ').substring(0, 19));
-    };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const [logs] = useState<LogMessage[]>([
+  const [logs, setLogs] = useState<LogMessage[]>([
     { time: '12:04:30', msg: 'System verification initialized: D:\\NEXUS\\PROJECTS\\omega-ops-dashboard', type: 'system' },
     { time: '12:06:40', msg: 'Merge completed: origin/work/omega-policies integrated cleanly into main', type: 'info' },
     { time: '12:07:06', msg: 'Vite build completed: omega-dashboard UI compiled (dist/index.html 0.76 kB)', type: 'info' },
@@ -32,6 +32,37 @@ function App() {
     { time: '12:31:21', msg: 'Project initialized: D:\\NEXUS\\PROJECTS\\nexus-command-center Phase 1', type: 'alert' },
     { time: '12:33:49', msg: 'Package setup completed: react/react-dom dependencies configured', type: 'system' },
   ]);
+
+  const fetchOmegaHealth = async () => {
+    setIsRefreshing(true);
+    const result = await checkOmegaStatus();
+    setOmegaStatus(result);
+    setIsRefreshing(false);
+    
+    const now = new Date();
+    const timeStr = now.toTimeString().substring(0, 8);
+    const statusLabel = result.status.toUpperCase();
+    const logMsg = `Telemetry Poll - Omega: ${statusLabel} (${result.responseMs !== undefined ? `${result.responseMs}ms` : 'unreachable'}) - ${result.message}`;
+    
+    setLogs(prev => [
+      ...prev,
+      { time: timeStr, msg: logMsg, type: result.status === 'online' ? 'info' : 'alert' }
+    ]);
+  };
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setCurrentTime(now.toISOString().replace('T', ' ').substring(0, 19));
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    
+    // Initial health check
+    fetchOmegaHealth();
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="app-container">
@@ -52,33 +83,46 @@ function App() {
       <main>
         <section className="system-grid">
           {/* Omega Ops Card */}
-          <div className="glass-card cyan-accent">
+          <div className={`glass-card cyan-accent`}>
             <div className="card-header">
               <div className="card-title-group">
                 <h3>Omega Ops</h3>
                 <p>Operational Dashboard & Staff Registry</p>
               </div>
-              <div className="status-badge online">
+              <div className={`status-badge ${omegaStatus.status}`}>
                 <span className="dot"></span>
-                ACTIVE
+                {omegaStatus.status}
               </div>
             </div>
             
             <div className="metric-row">
               <div className="metric-card">
-                <div className="metric-label">Staff Count</div>
-                <div className="metric-value highlight">142</div>
+                <div className="metric-label">Connection</div>
+                <div className="metric-value highlight" style={{ fontSize: '0.85rem', fontFamily: 'monospace' }}>
+                  {omegaStatus.status === 'online' ? '127.0.0.1:5001' : 'OFFLINE'}
+                </div>
               </div>
               <div className="metric-card">
-                <div className="metric-label">Active Projects</div>
-                <div className="metric-value">4</div>
+                <div className="metric-label">Latency</div>
+                <div className="metric-value" style={{ color: omegaStatus.status === 'online' ? 'var(--neon-green)' : 'var(--text-muted)' }}>
+                  {omegaStatus.responseMs !== undefined ? `${omegaStatus.responseMs}ms` : '—'}
+                </div>
               </div>
             </div>
 
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', height: '1.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              Signal: {omegaStatus.message || 'No signal data'}
+            </div>
+
             <div className="card-footer">
-              <span className="timestamp">v1.0.0 • Verified Main</span>
-              <button className="action-btn" onClick={() => alert('Access Restricted: Omega Live connection is currently in mockup/standby mode.')}>
-                Open Client
+              <span className="timestamp" style={{ fontSize: '0.7rem' }}>Checked: {omegaStatus.checkedAt.substring(11, 19)} UTC</span>
+              <button 
+                className="action-btn" 
+                disabled={isRefreshing}
+                onClick={fetchOmegaHealth}
+                style={{ minWidth: '80px' }}
+              >
+                {isRefreshing ? 'Polling...' : 'Refresh'}
               </button>
             </div>
           </div>
@@ -107,9 +151,13 @@ function App() {
               </div>
             </div>
 
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', height: '1.25rem' }}>
+              Signal: Ingestion pipeline paused for review
+            </div>
+
             <div className="card-footer">
-              <span className="timestamp">v0.8.4 • Standby Mode</span>
-              <button className="action-btn" onClick={() => alert('Access Restricted: Recruitment Hub connection is currently in mockup/standby mode.')}>
+              <span className="timestamp" style={{ fontSize: '0.7rem' }}>Checked: Simulation</span>
+              <button className="action-btn" onClick={() => alert('Access Restricted: Recruitment Hub is in standby mode.')}>
                 Open Client
               </button>
             </div>
@@ -139,9 +187,13 @@ function App() {
               </div>
             </div>
 
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.25rem', height: '1.25rem' }}>
+              Signal: Standby telemetry simulation active
+            </div>
+
             <div className="card-footer">
-              <span className="timestamp">v0.9.0 • Mock Telemetry</span>
-              <button className="action-btn" onClick={() => alert('Access Restricted: Asset Hub connection is currently in mockup/standby mode.')}>
+              <span className="timestamp" style={{ fontSize: '0.7rem' }}>Checked: Simulation</span>
+              <button className="action-btn" onClick={() => alert('Access Restricted: Asset Hub is in standby mode.')}>
                 Open Client
               </button>
             </div>
