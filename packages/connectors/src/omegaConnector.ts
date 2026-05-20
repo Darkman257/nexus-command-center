@@ -8,12 +8,25 @@ export async function checkOmegaStatus(baseUrl: string = 'http://127.0.0.1:5001'
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3000);
     
-    const response = await fetch(`${baseUrl}/healthz`, {
-      signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
+    let response;
+    try {
+      response = await fetch(`${baseUrl}/api/healthz`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Not OK');
       }
-    });
+    } catch {
+      response = await fetch(`${baseUrl}/healthz`, {
+        signal: controller.signal,
+        headers: {
+          'Accept': 'application/json',
+        }
+      });
+    }
     
     clearTimeout(timeoutId);
     
