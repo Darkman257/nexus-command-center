@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 import { checkOmegaStatus } from '../../../packages/connectors/src/omegaConnector';
 import type { SystemStatus } from '../../../packages/shared-types/src/systemStatus';
+import { KernelLibrary } from './kernel/KernelLibrary';
 
 interface LogMessage {
   time: string;
@@ -112,6 +113,7 @@ function App() {
 
   const [nodes, setNodes] = useState<NodeConfig[]>(INITIAL_NODES);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
+  const [kernelOpen, setKernelOpen] = useState<boolean>(false);
 
   const [cpuUsage, setCpuUsage] = useState(28.7);
   const [ramLoad, setRamLoad] = useState(42.9);
@@ -967,9 +969,9 @@ function App() {
               <button 
                 className="drawer-btn" 
                 style={{ padding: '4px', fontSize: '0.42rem', borderColor: 'rgba(213, 0, 249, 0.4)', color: '#d500f9', background: 'rgba(213, 0, 249, 0.05)' }} 
-                onClick={(e) => { e.stopPropagation(); handleExecute('open-wiki', 'KNOWLEDGE CORE'); }}
+                onClick={(e) => { e.stopPropagation(); setKernelOpen(true); }}
               >
-                LAUNCH WIKI HUD
+                ⚡ INTELLIGENCE KERNEL
               </button>
             </div>
           </div>
@@ -1274,6 +1276,9 @@ function App() {
           <span style={{ letterSpacing: '0.5px' }}>SECURE CHANNEL ENCRYPTED</span>
         </div>
       </footer>
+
+      {/* NEXUS INTELLIGENCE KERNEL v0 */}
+      {kernelOpen && <KernelLibrary onClose={() => setKernelOpen(false)} />}
     </div>
   );
 }
