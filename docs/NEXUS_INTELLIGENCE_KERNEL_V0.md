@@ -158,5 +158,15 @@ v1 will introduce a local file-based store (JSON or SQLite) only when persistent
 
 ---
 
+## Security Reference: Admindashboard
+
+- **Status**: Quarantined / Contaminated (Original repo deleted)
+- **Safe for direct import**: NO
+- **Safe as visual reference only**: YES
+- **Policy**: The extracted folder is a sanitized visual reference only. No business logic, Supabase, API, or Telegram logic can be reused.
+- **Future reuse**: Future reuse requires rewrite from scratch as NEXUS component using NEXUS AppContext/API Gateway only.
+
+---
+
 *NEXUS Intelligence Kernel — Command Center Internal Documentation*
 *Classification: Internal Use Only — Do Not Commit Secrets*
