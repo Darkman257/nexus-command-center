@@ -24,22 +24,22 @@ interface NodeConfig {
 }
 
 const INITIAL_NODES: NodeConfig[] = [
-  { id: 'nova', lbl: 'NOVA CORE', sub: 'AI COMMAND ENGINE', stat: 'OFFLINE', x: 50, y: 32, c: 'var(--cyan)', icon: 'fractal', acts: [{lbl: 'Open NOVA', end: 'open-nova'}] },
-  { id: 'recruit', lbl: 'RECRUIT HQ', sub: 'Port 3820', stat: 'STANDBY', x: 26, y: 31, c: 'var(--green)', icon: 'user', acts: [{lbl: 'Run Recruit Hub', end: 'run-recruit'}, {lbl: 'Open UI', end: 'open-recruit'}, {lbl: 'Build Hub', end: 'build-recruit'}, {lbl: 'Status Query', end: 'recruit-status'}] },
-  { id: 'outreach', lbl: 'OUTREACH HUB', sub: 'Port 3021', stat: 'ACTIVE', x: 36, y: 44, c: 'var(--pink)', icon: 'mega', acts: [] },
-  { id: 'bridge', lbl: 'BRIDGE', sub: 'Port 9999', stat: 'ACTIVE', x: 34, y: 18, c: 'var(--cyan)', icon: 'chain', acts: [{lbl: 'Ping Gateway', end: 'ping'}, {lbl: 'Status Check', end: 'status'}] },
-  { id: 'api_server', lbl: 'OMEGA API GATE', sub: 'Port 5001', stat: 'OFFLINE', x: 44, y: 31, c: 'var(--amber)', icon: 'shield', acts: [{lbl: 'Run API Server', end: 'run-api-server'}, {lbl: 'Build API', end: 'build-api-server'}, {lbl: 'Status Check', end: 'api-server-status'}] },
-  { id: 'omega', lbl: 'OMEGA', sub: 'Port 3000', stat: 'OFFLINE', x: 54, y: 16, c: 'var(--cyan)', icon: 'fractal', acts: [{lbl: 'Run Omega', end: 'run-omega'}, {lbl: 'Open UI', end: 'open-omega'}, {lbl: 'Build Ops', end: 'build-omega'}, {lbl: 'Status Query', end: 'status'}] },
-  { id: 'sally', lbl: 'SALLY', sub: 'Port 3005', stat: 'ACTIVE', x: 73, y: 22, c: 'var(--amber)', icon: 'crown', acts: [{lbl: 'Run Sally', end: 'run-sally'}, {lbl: 'Open UI', end: 'open-sally'}, {lbl: 'Build Rec', end: 'build-sally'}, {lbl: 'Status Query', end: 'sally-status'}] },
-  { id: 'sally_git', lbl: 'SALLY GIT', sub: 'Repository: Sally', stat: 'UNINITIALIZED', x: 29, y: 62, c: 'var(--amber)', icon: 'branch', acts: [] },
-  { id: 'git_stat', lbl: 'GIT STATUS', sub: 'Repository: Omega', stat: 'DIRTY', x: 49, y: 63, c: 'var(--green)', icon: 'branch', acts: [{lbl: 'Check Git', end: 'git-check'}] },
-  { id: 'telegram_agent', lbl: 'TELEGRAM AGENT', sub: 'Daemon Engine', stat: 'STANDBY', x: 64, y: 28, c: 'var(--purple)', icon: 'gear', acts: [{lbl: 'Start Agent', end: 'telegram-start'}, {lbl: 'Stop Agent', end: 'telegram-stop'}, {lbl: 'Health Check', end: 'telegram-health'}, {lbl: 'View Logs', end: 'telegram-logs'}] },
-  { id: 'analytics', lbl: 'ANALYTICS', sub: 'Port 3822', stat: 'ACTIVE', x: 64, y: 43, c: 'var(--amber)', icon: 'graph', acts: [] },
-  { id: 'data_core', lbl: 'DATA CORE', sub: 'Port 3823', stat: 'ACTIVE', x: 80, y: 50, c: 'var(--white)', icon: 'db', acts: [] },
-  { id: 'anti', lbl: 'ANTIGRAVITY', sub: 'Port 3010', stat: 'ACTIVE', x: 86, y: 33, c: 'var(--purple)', icon: 'tri', acts: [] },
-  { id: 'security', lbl: 'SECURITY GRID', sub: 'Port 3025', stat: 'ACTIVE', x: 71, y: 65, c: 'var(--red)', icon: 'shield', acts: [] },
-  { id: 'automation', lbl: 'AUTOMATION', sub: 'Port 3024', stat: 'ACTIVE', x: 88, y: 65, c: 'var(--blue)', icon: 'gear', acts: [] },
-  { id: 'runtime', lbl: 'NEXUS RUNTIME', sub: 'Telemetry Core', stat: 'ACTIVE', x: 50, y: 49, c: 'var(--cyan)', icon: 'db', acts: [{lbl: 'Open Timeline', end: 'runtime-open'}] }
+  { id: 'nova', lbl: 'NOVA CORE', sub: 'AI COMMAND ENGINE', stat: 'OFFLINE', x: 50, y: 45, c: 'var(--cyan)', icon: 'fractal', acts: [{lbl: 'Open NOVA', end: 'open-nova'}] },
+  { id: 'recruit', lbl: 'RECRUIT HQ', sub: 'Port 3820', stat: 'STANDBY', x: 25, y: 30, c: 'var(--green)', icon: 'user', acts: [{lbl: 'Run Recruit Hub', end: 'run-recruit'}, {lbl: 'Open UI', end: 'open-recruit'}, {lbl: 'Build Hub', end: 'build-recruit'}, {lbl: 'Status Query', end: 'recruit-status'}] },
+  { id: 'outreach', lbl: 'OUTREACH HUB', sub: 'Port 3021', stat: 'ACTIVE', x: 15, y: 45, c: 'var(--pink)', icon: 'mega', acts: [] },
+  { id: 'bridge', lbl: 'BRIDGE', sub: 'Port 9999', stat: 'ACTIVE', x: 30, y: 45, c: 'var(--cyan)', icon: 'chain', acts: [{lbl: 'Ping Gateway', end: 'ping'}, {lbl: 'Status Check', end: 'status'}] },
+  { id: 'api_server', lbl: 'OMEGA API GATE', sub: 'Port 5001', stat: 'OFFLINE', x: 65, y: 60, c: 'var(--amber)', icon: 'shield', acts: [{lbl: 'Run API Server', end: 'run-api-server'}, {lbl: 'Build API', end: 'build-api-server'}, {lbl: 'Status Check', end: 'api-server-status'}] },
+  { id: 'omega', lbl: 'OMEGA', sub: 'Port 3000', stat: 'OFFLINE', x: 70, y: 45, c: 'var(--cyan)', icon: 'fractal', acts: [{lbl: 'Run Omega', end: 'run-omega'}, {lbl: 'Open UI', end: 'open-omega'}, {lbl: 'Build Ops', end: 'build-omega'}, {lbl: 'Status Query', end: 'status'}] },
+  { id: 'sally', lbl: 'SALLY', sub: 'Port 3005', stat: 'ACTIVE', x: 65, y: 25, c: 'var(--amber)', icon: 'crown', acts: [{lbl: 'Run Sally', end: 'run-sally'}, {lbl: 'Open UI', end: 'open-sally'}, {lbl: 'Build Rec', end: 'build-sally'}, {lbl: 'Status Query', end: 'sally-status'}] },
+  { id: 'sally_git', lbl: 'SALLY GIT', sub: 'Repository: Sally', stat: 'UNINITIALIZED', x: 25, y: 15, c: 'var(--amber)', icon: 'branch', acts: [] },
+  { id: 'git_stat', lbl: 'GIT STATUS', sub: 'Repository: Omega', stat: 'DIRTY', x: 35, y: 25, c: 'var(--green)', icon: 'branch', acts: [{lbl: 'Check Git', end: 'git-check'}] },
+  { id: 'telegram_agent', lbl: 'TELEGRAM AGENT', sub: 'Daemon Engine', stat: 'STANDBY', x: 50, y: 20, c: 'var(--purple)', icon: 'gear', acts: [{lbl: 'Start Agent', end: 'telegram-start'}, {lbl: 'Stop Agent', end: 'telegram-stop'}, {lbl: 'Health Check', end: 'telegram-health'}, {lbl: 'View Logs', end: 'telegram-logs'}] },
+  { id: 'analytics', lbl: 'ANALYTICS', sub: 'Port 3822', stat: 'ACTIVE', x: 85, y: 45, c: 'var(--amber)', icon: 'graph', acts: [] },
+  { id: 'data_core', lbl: 'DATA CORE', sub: 'Port 3823', stat: 'ACTIVE', x: 35, y: 60, c: 'var(--white)', icon: 'db', acts: [] },
+  { id: 'anti', lbl: 'ANTIGRAVITY', sub: 'Port 3010', stat: 'ACTIVE', x: 75, y: 30, c: 'var(--purple)', icon: 'tri', acts: [] },
+  { id: 'security', lbl: 'SECURITY GRID', sub: 'Port 3025', stat: 'ACTIVE', x: 40, y: 75, c: 'var(--red)', icon: 'shield', acts: [] },
+  { id: 'automation', lbl: 'AUTOMATION', sub: 'Port 3024', stat: 'ACTIVE', x: 60, y: 75, c: 'var(--blue)', icon: 'gear', acts: [] },
+  { id: 'runtime', lbl: 'NEXUS RUNTIME', sub: 'Telemetry Core', stat: 'ACTIVE', x: 50, y: 65, c: 'var(--cyan)', icon: 'db', acts: [{lbl: 'Open Timeline', end: 'runtime-open'}] }
 ];
 
 const DATA_LANES = [
@@ -630,29 +630,28 @@ function App() {
         else if (coreColorProp === '--white') baseColor = '#e0f7fa';
         else if (coreColorProp === '--pink') baseColor = '#ff4081';
 
-        // Hose conduit layer
+        // Energy Stream (Base Glow)
         dCtx.strokeStyle = baseColor;
-        dCtx.lineWidth = isActive ? 2.2 : 1.2;
-        dCtx.globalAlpha = isActive ? 0.4 : 0.08;
+        dCtx.lineWidth = isActive ? 3.5 : 1.5;
+        dCtx.globalAlpha = isActive ? 0.35 : 0.12;
+        dCtx.shadowBlur = isActive ? 10 : 5;
+        dCtx.shadowColor = baseColor;
         dCtx.beginPath();
         dCtx.moveTo(p1.x, p1.y);
         dCtx.quadraticCurveTo(midX, midY, p2.x, p2.y);
         dCtx.stroke();
-
-        // Moving fluid dashed current
-        dCtx.strokeStyle = baseColor;
-        dCtx.lineWidth = isActive ? 1.5 : 1.0;
-        dCtx.globalAlpha = isActive ? 0.75 : 0.35;
-        dCtx.setLineDash([4, 10]);
-        dCtx.lineDashOffset = -pipeDashOffset;
+        
+        // Inner bright core of the stream
+        dCtx.lineWidth = isActive ? 1.2 : 0.5;
+        dCtx.globalAlpha = isActive ? 0.8 : 0.3;
+        dCtx.shadowBlur = 0;
         dCtx.beginPath();
         dCtx.moveTo(p1.x, p1.y);
         dCtx.quadraticCurveTo(midX, midY, p2.x, p2.y);
         dCtx.stroke();
-        dCtx.setLineDash([]);
         dCtx.globalAlpha = 1.0;
 
-        if (Math.random() < 0.005) {
+        if (Math.random() < 0.015) { // Increased particle spawn rate
           pulses.push({
             p: 0,
             s: 0.004 + Math.random() * 0.005,
@@ -668,27 +667,26 @@ function App() {
       pipeDashOffset = (pipeDashOffset + 0.25) % 14;
 
       // Photon Render
-      pulses = pulses.filter(pkt => {
-        pkt.p += pkt.s;
-        if (pkt.p >= 1) return false;
+      pulses = pulses.filter(p => {
+        p.p += p.s;
+        if (p.p >= 1) return false;
 
-        const t = pkt.p;
-        const cx = (1 - t) * (1 - t) * pkt.p1.x + 2 * (1 - t) * t * pkt.midX + t * t * pkt.p2.x;
-        const cy = (1 - t) * (1 - t) * pkt.p1.y + 2 * (1 - t) * t * pkt.midY + t * t * pkt.p2.y;
+        const px = Math.pow(1 - p.p, 2) * p.p1.x + 2 * (1 - p.p) * p.p * p.midX + Math.pow(p.p, 2) * p.p2.x;
+        const py = Math.pow(1 - p.p, 2) * p.p1.y + 2 * (1 - p.p) * p.p * p.midY + Math.pow(p.p, 2) * p.p2.y;
 
-        // Flare core
         dCtx.fillStyle = '#fff';
-        dCtx.shadowColor = pkt.color;
         dCtx.shadowBlur = 12;
+        dCtx.shadowColor = p.color;
         dCtx.beginPath();
-        dCtx.arc(cx, cy, 2.4, 0, Math.PI * 2);
+        dCtx.arc(px, py, 2.5, 0, Math.PI * 2); // Bigger, brighter particles
         dCtx.fill();
+        dCtx.shadowBlur = 0;
 
         // Tail Glow Flare
-        dCtx.fillStyle = pkt.color;
+        dCtx.fillStyle = p.color;
         dCtx.globalAlpha = 0.5;
         dCtx.beginPath();
-        dCtx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+        dCtx.arc(px, py, 4.5, 0, Math.PI * 2);
         dCtx.fill();
         dCtx.globalAlpha = 1.0;
         dCtx.shadowBlur = 0;
@@ -1137,6 +1135,16 @@ function App() {
                 <strong>ERROR:</strong> {telegramError}
               </div>
             )}
+            
+            {/* Minimal interpreted logs example */}
+            <div className="nova-interpreted-log" style={{ marginTop: '8px', borderTop: '1px solid rgba(0, 210, 255, 0.1)', paddingTop: '6px' }}>
+              <span style={{ color: 'var(--cyan)', fontSize: '0.4rem', fontWeight: 'bold' }}>NOVA LOG INTERPRETATION</span>
+              <ul style={{ listStyleType: 'none', padding: 0, margin: '4px 0 0 0', fontSize: '0.45rem', color: '#a0c0e0' }}>
+                <li>&gt; NOVA Core initialized</li>
+                <li>&gt; System health stable</li>
+                {!bridgeOnline && <li style={{ color: 'var(--red)' }}>&gt; Bridge daemon offline</li>}
+              </ul>
+            </div>
           </div>
         </div>
       </div>
@@ -1144,8 +1152,11 @@ function App() {
       {/* RIGHT SIDE NOVA PANEL */}
       <div className="right-nova-panel">
         <div className="nova-card-header">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--cyan)"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg>
+          <div className="nova-status-dot" style={{ width: 8, height: 8, borderRadius: '50%', background: novaStatus.online ? 'var(--green)' : 'var(--red)', boxShadow: `0 0 8px ${novaStatus.online ? 'var(--green)' : 'var(--red)'}` }} />
           <span className="nova-card-title">NOVA ASSISTANT</span>
+          <span style={{ marginLeft: 'auto', fontSize: '0.4rem', color: novaStatus.online ? 'var(--green)' : 'var(--red)', border: `1px solid ${novaStatus.online ? 'var(--green)' : 'var(--red)'}`, padding: '2px 4px', borderRadius: '2px' }}>
+            {novaStatus.online ? 'ONLINE' : 'OFFLINE'}
+          </span>
         </div>
         <div className="nova-card-body">
           <div className="nova-insight">
@@ -1159,6 +1170,13 @@ function App() {
             <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Create Patch Package</button>
             <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Audit Project</button>
             <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Explain Current Status</button>
+          </div>
+          <div className="nova-quick-input">
+            <input type="text" placeholder="Send quick command..." onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                setBrainOpen(true);
+              }
+            }} />
           </div>
         </div>
       </div>
@@ -1207,7 +1225,7 @@ function App() {
               <div className="core-halo" />
 
               {/* Inner Luminous Body */}
-              <div className="core-body" style={n.id === 'nova' ? { width: '42px', height: '42px' } : undefined}>
+              <div className={`core-body ${n.id === 'nova' ? 'nova-core-body' : ''}`}>
                 {SVG_ICONS[n.icon] || null}
               </div>
 
