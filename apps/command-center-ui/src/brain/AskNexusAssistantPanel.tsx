@@ -67,25 +67,23 @@ export function AskNexusAssistantPanel() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '15px' }}>
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', fontSize: '11px' }}>
-        <span style={{ padding: '4px 8px', background: '#330066', borderRadius: '4px', border: '1px solid #d500f9' }}>NOVA: Advisory Mode Only — No Direct Execution</span>
-        <span style={{ padding: '4px 8px', background: '#ff1744', borderRadius: '4px' }}>No Push</span>
-        <span style={{ padding: '4px 8px', background: '#ff1744', borderRadius: '4px' }}>No Production Writes</span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '20px', maxWidth: '900px', margin: '0 auto', width: '100%' }}>
+      {/* Hero Panel */}
+      <div style={{ background: 'linear-gradient(145deg, rgba(0,210,255,0.05) 0%, rgba(213,0,249,0.05) 100%)', border: '1px solid rgba(0, 210, 255, 0.2)', padding: '25px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h2 style={{ margin: '0 0 5px 0', fontSize: '28px', color: 'var(--cyan, #00d2ff)', letterSpacing: '1px' }}>NOVA</h2>
+          <div style={{ color: 'var(--purple, #d500f9)', fontWeight: 600, fontSize: '14px', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' }}>Strategic AI Advisor</div>
+          <div style={{ color: '#aaa', fontSize: '13px' }}>Discuss, plan, and prepare safe commands before execution.</div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+          <span style={{ padding: '6px 12px', border: '1px solid rgba(0, 210, 255, 0.3)', color: '#00d2ff', background: 'rgba(0, 210, 255, 0.05)', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>Advisory Only / No Direct Execution</span>
+          <span style={{ padding: '4px 10px', border: '1px solid rgba(255, 23, 68, 0.3)', color: '#ff1744', background: 'rgba(255, 23, 68, 0.05)', borderRadius: '20px', fontSize: '11px' }}>No Push / No Production Writes</span>
+        </div>
       </div>
 
-      <div style={{ background: '#1a1a1a', padding: '15px', border: '1px solid #00d2ff', borderRadius: '4px' }}>
-        <h4 style={{ margin: '0 0 10px 0', color: '#00d2ff' }}>Current Phase Card</h4>
-        <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '13px', lineHeight: '1.6' }}>
-          <li><strong>Command Center:</strong> NEXUS Brain V0 installed</li>
-          <li><strong>Ask NEXUS Assistant:</strong> NOVA Advisory Engine Active</li>
-          <li><strong>Omega Phase 1E:</strong> pending UI review / DB migration decision</li>
-        </ul>
-      </div>
-
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-        <label>Target Project:</label>
-        <select value={project} onChange={(e) => setProject(e.target.value)} style={{ padding: '8px', background: '#222', color: '#fff', border: '1px solid #444', flex: 1 }}>
+      <div style={{ display: 'flex', gap: '15px', alignItems: 'center', background: 'rgba(255, 255, 255, 0.02)', padding: '15px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+        <label style={{ fontSize: '13px', color: '#888', fontWeight: 600 }}>Target Project:</label>
+        <select value={project} onChange={(e) => setProject(e.target.value)} style={{ padding: '10px 15px', background: '#0a0a0a', color: '#fff', border: '1px solid #333', borderRadius: '6px', flex: 1, outline: 'none', cursor: 'pointer' }}>
           <option>Nexus Command Center</option>
           <option>Omega Ops Dashboard</option>
           <option>Recruitment Hub</option>
@@ -93,54 +91,62 @@ export function AskNexusAssistantPanel() {
         </select>
       </div>
 
-      <div style={{ flex: 1, background: '#111', border: '1px solid #333', padding: '15px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {chatLog.length === 0 && <div style={{ color: '#888', textAlign: 'center', marginTop: '20px' }}>Ask NOVA for strategic advice or Hamada commands.</div>}
+      <div style={{ flex: 1, background: '#0a0a0a', border: '1px solid #222', borderRadius: '12px', padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.5)' }}>
+        {chatLog.length === 0 && (
+          <div style={{ margin: 'auto', textAlign: 'center', color: '#555', maxWidth: '400px' }}>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '15px', opacity: 0.5 }}><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+            <div style={{ fontSize: '14px' }}>Welcome to NOVA.<br/>Ask for strategic advice or generate safe Hamada commands.</div>
+          </div>
+        )}
         {chatLog.map((log, i) => (
-          <div key={i} style={{ alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '80%' }}>
-            <div style={{ fontSize: '11px', color: log.role === 'user' ? '#00d2ff' : (log.role === 'nova' ? '#00ffcc' : '#d500f9'), marginBottom: '4px' }}>
+          <div key={i} style={{ alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
+            <div style={{ fontSize: '11px', color: log.role === 'user' ? '#00d2ff' : (log.role === 'nova' ? '#00ffcc' : '#d500f9'), marginBottom: '6px', paddingLeft: '4px', letterSpacing: '0.5px' }}>
               {log.role === 'user' ? 'YOU' : (log.role === 'nova' ? 'NOVA (AI)' : 'NEXUS ASSISTANT (LOCAL)')}
             </div>
-            <div style={{ background: log.role === 'user' ? '#003344' : (log.role === 'nova' ? '#002222' : '#220033'), padding: '10px', borderRadius: '6px', border: `1px solid ${log.role === 'user' ? '#00d2ff' : (log.role === 'nova' ? '#00ffcc' : '#d500f9')}` }}>
+            <div style={{ background: log.role === 'user' ? 'rgba(0, 210, 255, 0.08)' : (log.role === 'nova' ? 'rgba(0, 255, 204, 0.05)' : 'rgba(213, 0, 249, 0.05)'), padding: '16px', borderRadius: '12px', border: `1px solid ${log.role === 'user' ? 'rgba(0, 210, 255, 0.2)' : (log.role === 'nova' ? 'rgba(0, 255, 204, 0.2)' : 'rgba(213, 0, 249, 0.2)')}`, backdropFilter: 'blur(10px)' }}>
               {log.data.map((item, idx) => (
-                <div key={idx} style={{ marginTop: idx > 0 ? '10px' : '0' }}>
-                  {item.type === 'text' && <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.5' }}>{item.content}</div>}
+                <div key={idx} style={{ marginTop: idx > 0 ? '12px' : '0' }}>
+                  {item.type === 'text' && <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '14px', color: '#eee' }}>{item.content}</div>}
                   {item.type === 'command' && (
-                    <div style={{ background: '#000', padding: '10px', border: '1px solid #444', position: 'relative' }}>
-                      <pre style={{ margin: 0, fontSize: '12px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace' }}>{item.content}</pre>
-                      <button onClick={() => copyToClipboard(item.content)} style={{ position: 'absolute', top: '5px', right: '5px', background: '#444', color: '#fff', border: 'none', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>Copy Command</button>
+                    <div style={{ background: '#050505', padding: '12px', borderRadius: '6px', border: '1px solid #333', position: 'relative', marginTop: '8px' }}>
+                      <pre style={{ margin: 0, fontSize: '12.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', color: '#00d2ff' }}>{item.content}</pre>
+                      <button onClick={() => copyToClipboard(item.content)} style={{ position: 'absolute', top: '8px', right: '8px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 10px', fontSize: '10px', cursor: 'pointer', transition: 'background 0.2s' }}>Copy</button>
                     </div>
                   )}
                 </div>
               ))}
               {(log.role === 'nova' || log.role === 'assistant') && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '10px', borderTop: '1px solid #333', paddingTop: '10px' }}>
-                  <button onClick={() => copyToClipboard(log.data.map(d => d.content).join('\n'))} style={{ background: '#333', color: '#fff', border: 'none', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>Copy for Hamada</button>
-                  <button onClick={() => alert('Draft saved locally.')} style={{ background: '#333', color: '#fff', border: 'none', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>Save as Draft Instruction</button>
-                  <button onClick={() => alert('Marked for review.')} style={{ background: '#333', color: '#ffab00', border: 'none', padding: '4px 8px', fontSize: '10px', cursor: 'pointer' }}>Mark Needs Review</button>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '12px' }}>
+                  <button onClick={() => copyToClipboard(log.data.map(d => d.content).join('\n'))} style={{ background: 'rgba(0, 210, 255, 0.1)', color: '#00d2ff', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Copy for Hamada</button>
+                  <button onClick={() => alert('Draft saved locally.')} style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Save as Draft</button>
+                  <button onClick={() => alert('Marked for review.')} style={{ background: 'rgba(255, 171, 0, 0.1)', color: '#ffab00', border: '1px solid rgba(255, 171, 0, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Mark Needs Review</button>
                 </div>
               )}
             </div>
           </div>
         ))}
-        {isNovaLoading && <div style={{ color: '#00ffcc', fontSize: '12px' }}>NOVA is analyzing...</div>}
+        {isNovaLoading && <div style={{ color: 'var(--cyan, #00d2ff)', fontSize: '13px', fontStyle: 'italic' }}>NOVA is analyzing...</div>}
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-        <button onClick={() => handleQuickAction('Next Step', 'Analyze Next Step')} style={{ padding: '6px 10px', background: '#333', color: '#fff', border: '1px solid #555', cursor: 'pointer', fontSize: '12px' }}>Next Step</button>
-        <button onClick={() => handleQuickAction('Generate Hamada Command', 'General Action')} style={{ padding: '6px 10px', background: '#333', color: '#fff', border: '1px solid #555', cursor: 'pointer', fontSize: '12px' }}>Generate Hamada Command</button>
+      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button onClick={() => handleQuickAction('Prepare Hamada Command', 'Generate Hamada Command')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Prepare Hamada Command</button>
+        <button onClick={() => handleQuickAction('Review Returned Report', 'Review Returned Patch')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Review Returned Report</button>
+        <button onClick={() => handleQuickAction('Create Patch Package', 'Create Safe Task Pack')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Create Patch Package</button>
+        <button onClick={() => handleQuickAction('Audit Project', 'Audit Project State')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Audit Project</button>
+        <button onClick={() => handleQuickAction('Explain Current Status', 'Explain Status')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Explain Current Status</button>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+      <div style={{ display: 'flex', gap: '12px', marginTop: '5px', background: 'rgba(255, 255, 255, 0.02)', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
         <input 
           type="text" 
           value={input} 
           onChange={(e) => setInput(e.target.value)} 
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}
           placeholder="Ask NOVA... (e.g. How do I migrate Omega?)" 
-          style={{ flex: 1, padding: '12px', background: '#222', border: '1px solid #444', color: '#fff' }} 
+          style={{ flex: 1, padding: '14px 20px', background: 'transparent', border: 'none', color: '#fff', fontSize: '14px', outline: 'none' }} 
           disabled={isNovaLoading}
         />
-        <button onClick={() => handleSend()} disabled={isNovaLoading} style={{ padding: '10px 20px', background: 'var(--cyan, #00d2ff)', color: '#000', border: 'none', fontWeight: 'bold', cursor: isNovaLoading ? 'wait' : 'pointer' }}>Send</button>
+        <button onClick={() => handleSend()} disabled={isNovaLoading} style={{ padding: '0 24px', background: 'var(--cyan, #00d2ff)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '14px', cursor: isNovaLoading ? 'wait' : 'pointer', transition: 'opacity 0.2s', opacity: isNovaLoading ? 0.5 : 1 }}>Send</button>
       </div>
     </div>
   );
