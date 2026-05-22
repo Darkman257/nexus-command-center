@@ -5,9 +5,10 @@ import { generateHamadaCommand } from './nexusCommandTemplates';
 export function AskNexusAssistantPanel() {
   const [project, setProject] = useState('Nexus Command Center');
   const [input, setInput] = useState('');
-  const [chatLog, setChatLog] = useState<{ role: 'user' | 'assistant' | 'nova', data: { type: 'text' | 'command', content: string }[] }[]>([]);
+  const [chatLog, setChatLog] = useState<{ role: 'user' | 'assistant' | 'nova', data: { type: 'text' | 'command', content: string }[], timestamp: string, projectScope?: string, responseType?: string }[]>([]);
   const [isNovaLoading, setIsNovaLoading] = useState(false);
   const [localStatus, setLocalStatus] = useState<any>(null);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const doReq = window['fetch'];
@@ -19,11 +20,12 @@ export function AskNexusAssistantPanel() {
 
   const handleSend = async (text: string = input) => {
     if (!text.trim()) return;
+    const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     // Add user message to log
     setChatLog(prev => [
       ...prev,
-      { role: 'user', data: [{ type: 'text', content: text }] }
+      { role: 'user', data: [{ type: 'text', content: text }], timestamp: ts, projectScope: project }
     ]);
     setInput('');
     setIsNovaLoading(true);
@@ -43,16 +45,17 @@ export function AskNexusAssistantPanel() {
       });
       
       const data = await res.json();
+      const resType = text.toLowerCase().includes('status') ? 'Status' : 'Insight';
       setChatLog(prev => [
         ...prev,
-        { role: 'nova', data: [{ type: 'text', content: data.reply || 'No response.' }] }
+        { role: 'nova', data: [{ type: 'text', content: data.reply || 'No response.' }], timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), projectScope: project, responseType: resType }
       ]);
     } catch (err) {
       // Fallback to local responder if API fails (e.g. endpoint not up yet)
       const response = getLocalResponse(text, project);
       setChatLog(prev => [
         ...prev,
-        { role: 'assistant', data: response }
+        { role: 'assistant', data: response, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), projectScope: project, responseType: 'Insight' }
       ]);
     } finally {
       setIsNovaLoading(false);
@@ -60,19 +63,33 @@ export function AskNexusAssistantPanel() {
   };
 
   const handleQuickAction = (actionLabel: string, actionGoal: string) => {
+    const ts = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const cmd = generateHamadaCommand(project, actionGoal, `Triggered via quick action: ${actionLabel}`);
+    
+    let resType = 'Hamada Command';
+    if (actionLabel.includes('Status')) resType = 'Status';
+    if (actionLabel.includes('Audit') || actionLabel.includes('Review')) resType = 'Risk Review';
+    if (actionLabel.includes('Report')) resType = 'Insight';
+    if (actionLabel.includes('Patch')) resType = 'Patch Plan';
+
     setChatLog(prev => [
       ...prev,
-      { role: 'user', data: [{ type: 'text', content: `Quick Action: ${actionLabel}` }] },
+      { role: 'user', data: [{ type: 'text', content: `Quick Action: ${actionLabel}` }], timestamp: ts, projectScope: project },
       { role: 'assistant', data: [
-        { type: 'text', content: `Drafted command for ${actionLabel}:` },
+        { type: 'text', content: `Drafted command and processed request for ${actionLabel}:` },
         { type: 'command', content: cmd }
-      ]}
+      ], timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }), projectScope: project, responseType: resType }
     ]);
   };
 
-  const copyToClipboard = (text: string) => {
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const copyToClipboard = (text: string, msg: string) => {
     navigator.clipboard.writeText(text);
+    showToast(msg);
   };
 
   return (
@@ -108,40 +125,62 @@ export function AskNexusAssistantPanel() {
         </select>
       </div>
 
-      <div style={{ flex: 1, background: '#0a0a0a', border: '1px solid #222', borderRadius: '12px', padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.5)' }}>
+      <div style={{ flex: 1, background: '#0a0a0a', border: '1px solid #222', borderRadius: '12px', padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px', boxShadow: 'inset 0 4px 20px rgba(0,0,0,0.5)', position: 'relative' }}>
+        {toastMessage && (
+          <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(0, 255, 204, 0.15)', color: '#00ffcc', padding: '8px 16px', borderRadius: '20px', border: '1px solid rgba(0, 255, 204, 0.4)', fontSize: '12px', fontWeight: 'bold', zIndex: 10, backdropFilter: 'blur(10px)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)' }}>
+            ✓ {toastMessage}
+          </div>
+        )}
         {chatLog.length === 0 && (
           <div style={{ margin: 'auto', textAlign: 'center', color: '#555', maxWidth: '400px' }}>
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: '15px', opacity: 0.5 }}><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
             <div style={{ fontSize: '14px' }}>Welcome to NOVA.<br/>Ask for strategic advice or generate safe Hamada commands.</div>
           </div>
         )}
-        {chatLog.map((log, i) => (
-          <div key={i} style={{ alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%' }}>
-            <div style={{ fontSize: '11px', color: log.role === 'user' ? '#00d2ff' : (log.role === 'nova' ? '#00ffcc' : '#d500f9'), marginBottom: '6px', paddingLeft: '4px', letterSpacing: '0.5px' }}>
-              {log.role === 'user' ? 'YOU' : (log.role === 'nova' ? 'NOVA (AI)' : 'NEXUS ASSISTANT (LOCAL)')}
+        {chatLog.map((log, i) => {
+          const hasCommand = log.data.some(d => d.type === 'command');
+          const isWarning = log.responseType === 'Risk Review';
+          const isSafe = log.responseType === 'Status' || log.responseType === 'Insight';
+          
+          let borderColor = log.role === 'user' ? 'rgba(0, 210, 255, 0.3)' : (isWarning ? 'rgba(255, 171, 0, 0.4)' : (isSafe ? 'rgba(0, 255, 204, 0.3)' : 'rgba(213, 0, 249, 0.3)'));
+          let bgColor = log.role === 'user' ? 'rgba(0, 210, 255, 0.08)' : (isWarning ? 'rgba(255, 171, 0, 0.05)' : (isSafe ? 'rgba(0, 255, 204, 0.05)' : 'rgba(213, 0, 249, 0.05)'));
+          let titleColor = log.role === 'user' ? '#00d2ff' : (isWarning ? '#ffab00' : (isSafe ? '#00ffcc' : '#d500f9'));
+          
+          return (
+            <div key={i} style={{ alignSelf: log.role === 'user' ? 'flex-end' : 'flex-start', maxWidth: '85%', width: '100%' }}>
+              <div style={{ fontSize: '11px', color: titleColor, marginBottom: '6px', paddingLeft: '4px', letterSpacing: '0.5px', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <span style={{ fontWeight: 'bold' }}>{log.role === 'user' ? 'YOU (OWNER)' : (log.role === 'nova' ? 'NOVA (AI)' : 'NEXUS ASSISTANT (LOCAL)')}</span>
+                <span style={{ color: '#666' }}>{log.timestamp}</span>
+                {log.projectScope && <span style={{ color: '#888', background: '#111', padding: '2px 6px', borderRadius: '4px' }}>{log.projectScope}</span>}
+                {log.responseType && <span style={{ color: titleColor, background: bgColor, border: `1px solid ${borderColor}`, padding: '2px 6px', borderRadius: '4px' }}>{log.responseType}</span>}
+              </div>
+              <div style={{ background: bgColor, padding: '16px', borderRadius: '12px', border: `1px solid ${borderColor}`, backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
+                {log.data.map((item, idx) => (
+                  <div key={idx} style={{ marginTop: idx > 0 ? '12px' : '0' }}>
+                    {item.type === 'text' && <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '14px', color: '#eee' }}>{item.content}</div>}
+                    {item.type === 'command' && (
+                      <div style={{ background: '#050505', padding: '12px', borderRadius: '6px', border: '1px solid #333', position: 'relative', marginTop: '8px' }}>
+                        <pre style={{ margin: 0, fontSize: '12.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', color: '#00d2ff' }}>{item.content}</pre>
+                        <button onClick={() => copyToClipboard(item.content, 'Copied Hamada command')} style={{ position: 'absolute', top: '8px', right: '8px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 10px', fontSize: '10px', cursor: 'pointer', transition: 'background 0.2s' }}>Copy Command</button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {(log.role === 'nova' || log.role === 'assistant') && (
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '12px', flexWrap: 'wrap' }}>
+                    <button onClick={() => copyToClipboard(log.data.filter(d => d.type === 'text').map(d => d.content).join('\n'), 'Copied NOVA reply')} style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Copy NOVA Reply</button>
+                    {hasCommand && (
+                      <button onClick={() => copyToClipboard(log.data.find(d => d.type === 'command')?.content || '', 'Copied Hamada command')} style={{ background: 'rgba(0, 210, 255, 0.1)', color: '#00d2ff', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Copy Hamada Command</button>
+                    )}
+                    <button onClick={() => showToast('Task created locally in OUTBOX (Simulated)')} style={{ background: 'rgba(213, 0, 249, 0.1)', color: '#d500f9', border: '1px solid rgba(213, 0, 249, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Create Hamada Task</button>
+                    <button onClick={() => showToast('Draft saved successfully')} style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Save Draft</button>
+                    <button onClick={() => showToast('Marked as needs review')} style={{ background: 'rgba(255, 171, 0, 0.1)', color: '#ffab00', border: '1px solid rgba(255, 171, 0, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Mark Needs Review</button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div style={{ background: log.role === 'user' ? 'rgba(0, 210, 255, 0.08)' : (log.role === 'nova' ? 'rgba(0, 255, 204, 0.05)' : 'rgba(213, 0, 249, 0.05)'), padding: '16px', borderRadius: '12px', border: `1px solid ${log.role === 'user' ? 'rgba(0, 210, 255, 0.2)' : (log.role === 'nova' ? 'rgba(0, 255, 204, 0.2)' : 'rgba(213, 0, 249, 0.2)')}`, backdropFilter: 'blur(10px)' }}>
-              {log.data.map((item, idx) => (
-                <div key={idx} style={{ marginTop: idx > 0 ? '12px' : '0' }}>
-                  {item.type === 'text' && <div style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6', fontSize: '14px', color: '#eee' }}>{item.content}</div>}
-                  {item.type === 'command' && (
-                    <div style={{ background: '#050505', padding: '12px', borderRadius: '6px', border: '1px solid #333', position: 'relative', marginTop: '8px' }}>
-                      <pre style={{ margin: 0, fontSize: '12.5px', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace', color: '#00d2ff' }}>{item.content}</pre>
-                      <button onClick={() => copyToClipboard(item.content)} style={{ position: 'absolute', top: '8px', right: '8px', background: '#222', color: '#fff', border: '1px solid #444', borderRadius: '4px', padding: '4px 10px', fontSize: '10px', cursor: 'pointer', transition: 'background 0.2s' }}>Copy</button>
-                    </div>
-                  )}
-                </div>
-              ))}
-              {(log.role === 'nova' || log.role === 'assistant') && (
-                <div style={{ display: 'flex', gap: '8px', marginTop: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)', paddingTop: '12px' }}>
-                  <button onClick={() => copyToClipboard(log.data.map(d => d.content).join('\n'))} style={{ background: 'rgba(0, 210, 255, 0.1)', color: '#00d2ff', border: '1px solid rgba(0, 210, 255, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Copy for Hamada</button>
-                  <button onClick={() => alert('Draft saved locally.')} style={{ background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Save as Draft</button>
-                  <button onClick={() => alert('Marked for review.')} style={{ background: 'rgba(255, 171, 0, 0.1)', color: '#ffab00', border: '1px solid rgba(255, 171, 0, 0.2)', borderRadius: '4px', padding: '6px 12px', fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s' }}>Mark Needs Review</button>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+          );
+        })}
         {isNovaLoading && <div style={{ color: 'var(--cyan, #00d2ff)', fontSize: '13px', fontStyle: 'italic' }}>NOVA is analyzing...</div>}
       </div>
 
