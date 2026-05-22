@@ -24,6 +24,7 @@ interface NodeConfig {
 }
 
 const INITIAL_NODES: NodeConfig[] = [
+  { id: 'nova', lbl: 'NOVA CORE', sub: 'AI COMMAND ENGINE', stat: 'OFFLINE', x: 50, y: 32, c: 'var(--cyan)', icon: 'fractal', acts: [{lbl: 'Open NOVA', end: 'open-nova'}] },
   { id: 'recruit', lbl: 'RECRUIT HQ', sub: 'Port 3820', stat: 'STANDBY', x: 26, y: 31, c: 'var(--green)', icon: 'user', acts: [{lbl: 'Run Recruit Hub', end: 'run-recruit'}, {lbl: 'Open UI', end: 'open-recruit'}, {lbl: 'Build Hub', end: 'build-recruit'}, {lbl: 'Status Query', end: 'recruit-status'}] },
   { id: 'outreach', lbl: 'OUTREACH HUB', sub: 'Port 3021', stat: 'ACTIVE', x: 36, y: 44, c: 'var(--pink)', icon: 'mega', acts: [] },
   { id: 'bridge', lbl: 'BRIDGE', sub: 'Port 9999', stat: 'ACTIVE', x: 34, y: 18, c: 'var(--cyan)', icon: 'chain', acts: [{lbl: 'Ping Gateway', end: 'ping'}, {lbl: 'Status Check', end: 'status'}] },
@@ -38,7 +39,7 @@ const INITIAL_NODES: NodeConfig[] = [
   { id: 'anti', lbl: 'ANTIGRAVITY', sub: 'Port 3010', stat: 'ACTIVE', x: 86, y: 33, c: 'var(--purple)', icon: 'tri', acts: [] },
   { id: 'security', lbl: 'SECURITY GRID', sub: 'Port 3025', stat: 'ACTIVE', x: 71, y: 65, c: 'var(--red)', icon: 'shield', acts: [] },
   { id: 'automation', lbl: 'AUTOMATION', sub: 'Port 3024', stat: 'ACTIVE', x: 88, y: 65, c: 'var(--blue)', icon: 'gear', acts: [] },
-  { id: 'runtime', lbl: 'NEXUS RUNTIME', sub: 'Telemetry Core', stat: 'ACTIVE', x: 50, y: 44, c: 'var(--cyan)', icon: 'db', acts: [{lbl: 'Open Timeline', end: 'runtime-open'}] }
+  { id: 'runtime', lbl: 'NEXUS RUNTIME', sub: 'Telemetry Core', stat: 'ACTIVE', x: 50, y: 49, c: 'var(--cyan)', icon: 'db', acts: [{lbl: 'Open Timeline', end: 'runtime-open'}] }
 ];
 
 const DATA_LANES = [
@@ -60,7 +61,11 @@ const DATA_LANES = [
   { from: 'telegram_agent', to: 'omega', cx1: -5, cy1: -10 },
   { from: 'telegram_agent', to: 'runtime', cx1: 5, cy1: 8 },
   { from: 'runtime', to: 'omega', cx1: -5, cy1: -12 },
-  { from: 'api_server', to: 'runtime', cx1: -10, cy1: 12 }
+  { from: 'api_server', to: 'runtime', cx1: -10, cy1: 12 },
+  { from: 'nova', to: 'omega', cx1: -5, cy1: 5 },
+  { from: 'nova', to: 'bridge', cx1: 5, cy1: -5 },
+  { from: 'nova', to: 'recruit', cx1: 10, cy1: -10 },
+  { from: 'nova', to: 'runtime', cx1: -5, cy1: -5 }
 ];
 
 const SVG_ICONS: Record<string, React.ReactElement> = {
@@ -110,6 +115,11 @@ function App() {
     status: 'offline',
     checkedAt: new Date().toISOString(),
     message: 'Initializing health telemetry...'
+  });
+
+  const [novaStatus, setNovaStatus] = useState<any>({
+    online: false,
+    selectedProvider: 'offline'
   });
 
   const [nodes, setNodes] = useState<NodeConfig[]>(INITIAL_NODES);
@@ -200,6 +210,20 @@ function App() {
     const result = await checkOmegaStatus();
     setOmegaStatus(result);
 
+    // Fetch NOVA local status
+    try {
+      const novaRes = await fetch('/api/nova/local-status');
+      if (novaRes.ok) {
+        const data = await novaRes.json();
+        setNovaStatus({
+          online: data.ollamaOnline || data.selectedProvider === 'openai',
+          selectedProvider: data.selectedProvider
+        });
+      }
+    } catch (err) {
+      console.warn('NOVA status fetch failed', err);
+    }
+
     // Call Bridge Telemetry
     const pingRes = await callBridgeAPI('ping');
     const isBridgeUp = pingRes === 'SYSTEM ONLINE';
@@ -270,6 +294,8 @@ function App() {
             return { ...n, stat: gitStatStr };
           case 'omega':
             return { ...n, stat: result.status.toUpperCase() };
+          case 'nova':
+            return { ...n, stat: novaStatus.online ? 'ONLINE' : 'OFFLINE' };
           default:
             return n;
         }
@@ -282,6 +308,9 @@ function App() {
         }
         if (n.id === 'omega') {
           return { ...n, stat: result.status.toUpperCase() };
+        }
+        if (n.id === 'nova') {
+          return { ...n, stat: novaStatus.online ? 'ONLINE' : 'OFFLINE' };
         }
         return n;
       }));
@@ -375,6 +404,10 @@ function App() {
       case 'git-check':
         endpoint = 'git-check';
         break;
+
+      case 'open-nova':
+        setBrainOpen(true);
+        return; // UI action only
 
       default:
         break;
@@ -1108,6 +1141,28 @@ function App() {
         </div>
       </div>
 
+      {/* RIGHT SIDE NOVA PANEL */}
+      <div className="right-nova-panel">
+        <div className="nova-card-header">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--cyan)"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm0 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 3a5 5 0 1 1 0 10 5 5 0 0 1 0-10z"/></svg>
+          <span className="nova-card-title">NOVA ASSISTANT</span>
+        </div>
+        <div className="nova-card-body">
+          <div className="nova-insight">
+            <span style={{ color: 'var(--cyan)' }}>LATEST INSIGHT:</span>
+            <p>NOVA Local Engine {novaStatus.online ? `(${novaStatus.selectedProvider}) is Online and ready for commands.` : 'is currently offline. Awaiting Ollama backend.'}</p>
+          </div>
+          <div className="nova-actions-grid">
+            <button className="nova-action-btn" onClick={() => handleExecute('status', 'SYSTEM STATUS')}>System Status</button>
+            <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Prepare Hamada Command</button>
+            <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Review Returned Report</button>
+            <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Create Patch Package</button>
+            <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Audit Project</button>
+            <button className="nova-action-btn" onClick={() => setBrainOpen(true)}>Explain Current Status</button>
+          </div>
+        </div>
+      </div>
+
       {/* SPACE NODE ARENA MAP */}
       <div id="orbital-arena">
         {nodes.map(n => {
@@ -1151,39 +1206,9 @@ function App() {
               {/* Luminous background halo */}
               <div className="core-halo" />
 
-              {/* Ring Wrapper 1: Back Half */}
-              <div className="ring-wrapper wrapper-1 back">
-                <div className="core-ring-main">
-                  <div className="core-packet-main" />
-                </div>
-                <div className="core-ring-dust" />
-              </div>
-
-              {/* Ring Wrapper 2: Back Half */}
-              <div className="ring-wrapper wrapper-2 back">
-                <div className="core-ring-crossed">
-                  <div className="core-packet-sub" />
-                </div>
-              </div>
-
               {/* Inner Luminous Body */}
-              <div className="core-body">
+              <div className="core-body" style={n.id === 'nova' ? { width: '42px', height: '42px' } : undefined}>
                 {SVG_ICONS[n.icon] || null}
-              </div>
-
-              {/* Ring Wrapper 1: Front Half */}
-              <div className="ring-wrapper wrapper-1 front">
-                <div className="core-ring-main">
-                  <div className="core-packet-main" />
-                </div>
-                <div className="core-ring-dust" />
-              </div>
-
-              {/* Ring Wrapper 2: Front Half */}
-              <div className="ring-wrapper wrapper-2 front">
-                <div className="core-ring-crossed">
-                  <div className="core-packet-sub" />
-                </div>
               </div>
 
               {/* Metadata Label */}

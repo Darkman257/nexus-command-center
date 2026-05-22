@@ -444,14 +444,15 @@
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.3) 0%, rgba(0,0,0,1) 75%);
-  border: 1.8px solid var(--c);
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 20%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   z-index: 20;
-  box-shadow: inset 0 0 12px var(--c-glow), 0 0 20px rgba(0,0,0,0.9);
+  box-shadow: inset -5px -5px 15px rgba(0,0,0,0.5), inset 5px 5px 15px rgba(255,255,255,0.4), 0 0 25px var(--c-glow);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  backdrop-filter: blur(4px);
 }
 
 .core-body::before {
@@ -459,8 +460,8 @@
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: radial-gradient(circle at 50% 50%, transparent 50%, var(--c-glow) 90%);
-  opacity: 0.75;
+  background: radial-gradient(circle at 50% 50%, transparent 40%, var(--c-glow) 90%);
+  opacity: 0.8;
   z-index: 1;
 }
 
@@ -626,11 +627,95 @@
   opacity: 1;
 }
 
+/* RIGHT SIDE NOVA PANEL */
+.right-nova-panel {
+  position: absolute;
+  top: 4.8rem;
+  right: 1.5rem;
+  width: 250px;
+  z-index: 50;
+  background: rgba(0, 210, 255, 0.04);
+  border: 1px solid rgba(0, 210, 255, 0.25);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 0 12px rgba(0, 210, 255, 0.05);
+}
+
+.nova-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 0.8rem;
+  border-bottom: 1px solid rgba(0, 210, 255, 0.15);
+  background: rgba(0, 210, 255, 0.05);
+}
+
+.nova-card-title {
+  color: var(--cyan);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 1px;
+}
+
+.nova-card-body {
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.nova-insight {
+  font-size: 0.48rem;
+  line-height: 1.5;
+  color: #d4e1f0;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 0.6rem;
+  border-left: 2px solid var(--cyan);
+  border-radius: 2px;
+}
+
+.nova-insight span {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 4px;
+  font-size: 0.42rem;
+  letter-spacing: 0.5px;
+}
+
+.nova-actions-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.nova-action-btn {
+  background: rgba(0, 210, 255, 0.05);
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  color: #00d2ff;
+  font-family: monospace;
+  font-size: 0.48rem;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.nova-action-btn:hover {
+  background: rgba(0, 210, 255, 0.15);
+  border-color: rgba(0, 210, 255, 0.4);
+  color: #fff;
+  box-shadow: 0 0 8px rgba(0, 210, 255, 0.2);
+}
+
 /* Floating Launch Controller Widget */
 .floating-launcher {
   position: absolute;
-  top: 4.8rem;
-  right: 2.5rem;
+  bottom: 2.5rem;
+  right: 1.5rem;
   width: 240px;
   z-index: 1000;
   background: rgba(1, 2, 4, 0.88);
