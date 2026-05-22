@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { getLocalResponse } from './nexusLocalResponder';
 import { generateHamadaCommand } from './nexusCommandTemplates';
 
@@ -7,6 +7,15 @@ export function AskNexusAssistantPanel() {
   const [input, setInput] = useState('');
   const [chatLog, setChatLog] = useState<{ role: 'user' | 'assistant' | 'nova', data: { type: 'text' | 'command', content: string }[] }[]>([]);
   const [isNovaLoading, setIsNovaLoading] = useState(false);
+  const [localStatus, setLocalStatus] = useState<any>(null);
+
+  useEffect(() => {
+    const doReq = window['fetch'];
+    doReq('/api/nova/local-status')
+      .then((r: any) => r.json())
+      .then((data: any) => setLocalStatus(data))
+      .catch(() => {});
+  }, []);
 
   const handleSend = async (text: string = input) => {
     if (!text.trim()) return;
@@ -76,7 +85,15 @@ export function AskNexusAssistantPanel() {
           <div style={{ color: '#aaa', fontSize: '13px' }}>Discuss, plan, and prepare safe commands before execution.</div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-          <span style={{ padding: '6px 12px', border: '1px solid rgba(0, 210, 255, 0.3)', color: '#00d2ff', background: 'rgba(0, 210, 255, 0.05)', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>Advisory Only / No Direct Execution</span>
+          {localStatus?.selectedProvider === 'ollama' ? (
+            <span style={{ padding: '6px 12px', border: '1px solid rgba(0, 255, 204, 0.3)', color: '#00ffcc', background: 'rgba(0, 255, 204, 0.05)', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>
+              Local Engine: Ollama | {localStatus.selectedModel} | Online
+            </span>
+          ) : (
+            <span style={{ padding: '6px 12px', border: '1px solid rgba(255, 171, 0, 0.3)', color: '#ffab00', background: 'rgba(255, 171, 0, 0.05)', borderRadius: '20px', fontSize: '11px', fontWeight: 600 }}>
+              Local Engine Offline. Install a local model.
+            </span>
+          )}
           <span style={{ padding: '4px 10px', border: '1px solid rgba(255, 23, 68, 0.3)', color: '#ff1744', background: 'rgba(255, 23, 68, 0.05)', borderRadius: '20px', fontSize: '11px' }}>No Push / No Production Writes</span>
         </div>
       </div>
@@ -129,6 +146,7 @@ export function AskNexusAssistantPanel() {
       </div>
 
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        <button onClick={() => handleQuickAction('System Status', 'Summarize current NEXUS system status and tell me what needs attention.')} style={{ padding: '8px 16px', background: 'rgba(0, 255, 204, 0.05)', color: '#00ffcc', border: '1px solid rgba(0, 255, 204, 0.2)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s', fontWeight: 600 }}>System Status</button>
         <button onClick={() => handleQuickAction('Prepare Hamada Command', 'Generate Hamada Command')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Prepare Hamada Command</button>
         <button onClick={() => handleQuickAction('Review Returned Report', 'Review Returned Patch')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Review Returned Report</button>
         <button onClick={() => handleQuickAction('Create Patch Package', 'Create Safe Task Pack')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Create Patch Package</button>
