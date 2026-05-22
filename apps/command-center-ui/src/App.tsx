@@ -971,13 +971,13 @@ function App() {
               <button
                 className="drawer-btn"
                 style={{ padding: '4px', fontSize: '0.42rem', borderColor: 'rgba(213, 0, 249, 0.4)', color: '#d500f9', background: 'rgba(213, 0, 249, 0.05)' }}
-                onClick={(e) => { e.stopPropagation(); setKernelOpen(true); }}
+                onClick={(e) => { e.stopPropagation(); setBrainOpen(true); }}
               >
-                ⚡ INTELLIGENCE KERNEL
+                ⚡ OPEN NOVA
               </button>
             </div>
           </div>
-          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); window.open('http://localhost:9999/api/repo-library', '_blank'); }}>OPEN</button>
+          <button className="card-open-btn" onClick={(e) => { e.stopPropagation(); setBrainOpen(true); }}>OPEN NOVA</button>
           <div className="hud-strip" style={{ background: 'var(--purple)' }} />
         </div>
       </div>

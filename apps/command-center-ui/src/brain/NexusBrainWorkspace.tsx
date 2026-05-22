@@ -1,13 +1,7 @@
 import { useState } from 'react';
 import { AskNexusAssistantPanel } from './AskNexusAssistantPanel';
 import { AskNexusMemoryPanel } from './AskNexusMemoryPanel';
-import { CapabilityRegistryPanel } from './CapabilityRegistryPanel';
-import { BusinessIntakeAdvisorPanel } from './BusinessIntakeAdvisorPanel';
-import { AnalyzeFilesPanel } from './AnalyzeFilesPanel';
 import { ProjectLearningPanel } from './ProjectLearningPanel';
-import { PendingPatchesPanel } from './PendingPatchesPanel';
-import { DeveloperGuardrailsPanel } from './DeveloperGuardrailsPanel';
-import { ProductLauncherPanel } from './ProductLauncherPanel';
 import { AntigravityBridgePanel } from './AntigravityBridgePanel';
 import { OwnerPatchExchangePanel } from './OwnerPatchExchangePanel';
 
@@ -33,17 +27,11 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <aside style={{ width: '250px', borderRight: '1px solid #333', overflowY: 'auto' }}>
           {[
-            { id: 'assistant', label: 'Ask NEXUS Assistant' },
-            { id: 'memory', label: 'Ask NEXUS Memory' },
-            { id: 'capability', label: 'Capability Registry' },
-            { id: 'intake', label: 'Business Intake Advisor' },
-            { id: 'analyze', label: 'Analyze Uploaded Files' },
-            { id: 'learning', label: 'Project Learning Intake' },
-            { id: 'patches', label: 'Pending Patches' },
-            { id: 'guardrails', label: 'Developer Guardrails' },
-            { id: 'launcher', label: 'Product Launcher' },
+            { id: 'assistant', label: 'NOVA Assistant' },
+            { id: 'bridge', label: 'Hamada Command Composer' },
             { id: 'exchange', label: 'Owner Patch Exchange' },
-            { id: 'bridge', label: 'Antigravity Bridge' }
+            { id: 'memory', label: 'Intelligence Kernel' },
+            { id: 'learning', label: 'Project Status' }
           ].map(tab => (
             <button 
               key={tab.id}
@@ -57,16 +45,10 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
 
         <main style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
           {activeTab === 'assistant' && <AskNexusAssistantPanel />}
-          {activeTab === 'memory' && <AskNexusMemoryPanel />}
-          {activeTab === 'capability' && <CapabilityRegistryPanel />}
-          {activeTab === 'intake' && <BusinessIntakeAdvisorPanel />}
-          {activeTab === 'analyze' && <AnalyzeFilesPanel />}
-          {activeTab === 'learning' && <ProjectLearningPanel />}
-          {activeTab === 'patches' && <PendingPatchesPanel />}
-          {activeTab === 'guardrails' && <DeveloperGuardrailsPanel />}
-          {activeTab === 'launcher' && <ProductLauncherPanel />}
-          {activeTab === 'exchange' && <OwnerPatchExchangePanel />}
           {activeTab === 'bridge' && <AntigravityBridgePanel />}
+          {activeTab === 'exchange' && <OwnerPatchExchangePanel />}
+          {activeTab === 'memory' && <AskNexusMemoryPanel />}
+          {activeTab === 'learning' && <ProjectLearningPanel />}
         </main>
       </div>
     </div>
