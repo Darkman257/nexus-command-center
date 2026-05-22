@@ -9,6 +9,7 @@ import { PendingPatchesPanel } from './PendingPatchesPanel';
 import { DeveloperGuardrailsPanel } from './DeveloperGuardrailsPanel';
 import { ProductLauncherPanel } from './ProductLauncherPanel';
 import { AntigravityBridgePanel } from './AntigravityBridgePanel';
+import { OwnerPatchExchangePanel } from './OwnerPatchExchangePanel';
 
 export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
   const [activeTab, setActiveTab] = useState('assistant');
@@ -41,6 +42,7 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
             { id: 'patches', label: 'Pending Patches' },
             { id: 'guardrails', label: 'Developer Guardrails' },
             { id: 'launcher', label: 'Product Launcher' },
+            { id: 'exchange', label: 'Owner Patch Exchange' },
             { id: 'bridge', label: 'Antigravity Bridge' }
           ].map(tab => (
             <button 
@@ -63,11 +65,13 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
           {activeTab === 'patches' && <PendingPatchesPanel />}
           {activeTab === 'guardrails' && <DeveloperGuardrailsPanel />}
           {activeTab === 'launcher' && <ProductLauncherPanel />}
+          {activeTab === 'exchange' && <OwnerPatchExchangePanel />}
           {activeTab === 'bridge' && <AntigravityBridgePanel />}
         </main>
       </div>
     </div>
   );
 }
+
 
 
