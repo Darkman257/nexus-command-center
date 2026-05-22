@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { AskNexusAssistantPanel } from './AskNexusAssistantPanel';
 import { AskNexusMemoryPanel } from './AskNexusMemoryPanel';
 import { CapabilityRegistryPanel } from './CapabilityRegistryPanel';
 import { BusinessIntakeAdvisorPanel } from './BusinessIntakeAdvisorPanel';
@@ -10,7 +11,7 @@ import { ProductLauncherPanel } from './ProductLauncherPanel';
 import { AntigravityBridgePanel } from './AntigravityBridgePanel';
 
 export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
-  const [activeTab, setActiveTab] = useState('memory');
+  const [activeTab, setActiveTab] = useState('assistant');
 
   return (
     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#0a0a0a', color: '#fff', zIndex: 9999, display: 'flex', flexDirection: 'column' }}>
@@ -31,6 +32,7 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         <aside style={{ width: '250px', borderRight: '1px solid #333', overflowY: 'auto' }}>
           {[
+            { id: 'assistant', label: 'Ask NEXUS Assistant' },
             { id: 'memory', label: 'Ask NEXUS Memory' },
             { id: 'capability', label: 'Capability Registry' },
             { id: 'intake', label: 'Business Intake Advisor' },
@@ -52,6 +54,7 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
         </aside>
 
         <main style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+          {activeTab === 'assistant' && <AskNexusAssistantPanel />}
           {activeTab === 'memory' && <AskNexusMemoryPanel />}
           {activeTab === 'capability' && <CapabilityRegistryPanel />}
           {activeTab === 'intake' && <BusinessIntakeAdvisorPanel />}
@@ -66,4 +69,5 @@ export function NexusBrainWorkspace({ onClose }: { onClose: () => void }) {
     </div>
   );
 }
+
 
