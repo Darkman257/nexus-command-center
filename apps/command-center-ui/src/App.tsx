@@ -3,6 +3,7 @@ import './App.css';
 import { checkOmegaStatus } from '../../../packages/connectors/src/omegaConnector';
 import type { SystemStatus } from '../../../packages/shared-types/src/systemStatus';
 import { KernelLibrary } from './kernel/KernelLibrary';
+import { NexusBrainWorkspace } from './brain/NexusBrainWorkspace';
 
 interface LogMessage {
   time: string;
@@ -102,7 +103,7 @@ function App() {
   const [currentTime, setCurrentTime] = useState<string>('');
   const [currentDate, setCurrentDate] = useState<string>('');
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  
+
   const [omegaStatus, setOmegaStatus] = useState<SystemStatus>({
     systemId: 'omega-ops',
     label: 'Omega Ops',
@@ -114,6 +115,7 @@ function App() {
   const [nodes, setNodes] = useState<NodeConfig[]>(INITIAL_NODES);
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
   const [kernelOpen, setKernelOpen] = useState<boolean>(false);
+  const [brainOpen, setBrainOpen] = useState<boolean>(false);
 
   const [cpuUsage, setCpuUsage] = useState(28.7);
   const [ramLoad, setRamLoad] = useState(42.9);
@@ -193,7 +195,7 @@ function App() {
 
   const fetchOmegaHealth = async () => {
     setIsRefreshing(true);
-    
+
     // Direct Omega health check
     const result = await checkOmegaStatus();
     setOmegaStatus(result);
@@ -202,7 +204,7 @@ function App() {
     const pingRes = await callBridgeAPI('ping');
     const isBridgeUp = pingRes === 'SYSTEM ONLINE';
     setBridgeOnline(isBridgeUp);
-    
+
     let sysLogMsg = `Telemetry Poll - Bridge Daemon: ${isBridgeUp ? 'ONLINE' : 'OFFLINE'}`;
 
     if (isBridgeUp) {
@@ -290,13 +292,13 @@ function App() {
     const timeStr = now.toLocaleTimeString();
     const statusLabel = result.status.toUpperCase();
     const logMsg = `Telemetry Poll - Omega Ops: ${statusLabel} (${result.responseMs !== undefined ? `${result.responseMs}ms` : 'unreachable'}) - ${result.message}`;
-    
+
     setLogs(prev => [
       ...prev,
       { time: timeStr, msg: logMsg, type: result.status === 'online' ? 'info' : 'alert' },
       { time: timeStr, msg: sysLogMsg, type: isBridgeUp ? 'system' : 'alert' }
     ]);
-    
+
     setIsRefreshing(false);
   };
 
@@ -390,11 +392,11 @@ function App() {
       if (res !== null) {
         let displayRes = typeof res === 'object' ? JSON.stringify(res) : String(res);
         displayRes = displayRes.replace(/\d{8,10}:[A-Za-z0-9_-]{35,45}/g, '<REDACTED_TOKEN>');
-        
+
         if (displayRes.length > 120) {
           displayRes = displayRes.substring(0, 120) + '...';
         }
-        
+
         setLogs(prev => [
           { time: doneTime, msg: `COMMAND RESPONSE: ${displayRes}`, type: 'info' },
           ...prev.slice(0, 19)
@@ -425,7 +427,7 @@ function App() {
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
-    
+
     // Initial health check
     fetchOmegaHealth();
 
@@ -583,7 +585,7 @@ function App() {
         const midY = (p1.y + p2.y) / 2 + (lane.cy1 * (h / 768));
 
         const isActive = (focusedNodeIdRef.current && (lane.from === focusedNodeIdRef.current || lane.to === focusedNodeIdRef.current));
-        
+
         // Extract color hex code
         const coreColorProp = n1.c.replace('var(', '').replace(')', '');
         let baseColor = '#00d2ff';
@@ -752,8 +754,8 @@ function App() {
 
       {/* HEADER HUD */}
       <header className="app-header">
-        <div 
-          className="brand-group" 
+        <div
+          className="brand-group"
           style={{ cursor: 'pointer' }}
           onClick={() => window.open('http://127.0.0.1:5177', '_blank')}
         >
@@ -786,9 +788,9 @@ function App() {
             <div className="clock-time">{currentTime || '06:30:45 PM'}</div>
             <div className="clock-date">{currentDate || 'MONDAY, MAY 12, 2026'}</div>
           </div>
-          <div 
-            className="settings-ico" 
-            onClick={() => { if (!isRefreshing) fetchOmegaHealth(); }} 
+          <div
+            className="settings-ico"
+            onClick={() => { if (!isRefreshing) fetchOmegaHealth(); }}
             title={isRefreshing ? "Polling Telemetry..." : "Force Telemetry Poll"}
           >
             <svg width="15" height="15" viewBox="0 0 24 24" fill="#fff">
@@ -801,17 +803,17 @@ function App() {
       {/* LEFT STATUS RAIL */}
       <div className="left-dashboard">
         {/* Bridge Status */}
-        <div 
-          className="glass-panel left-hud-card" 
-          tabIndex={0} 
-          role="button" 
+        <div
+          className="glass-panel left-hud-card"
+          tabIndex={0}
+          role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('bridge'); }}
         >
           <div className="panel-header-row">
             <span className="p-lbl">BRIDGE STATUS</span>
-            <div className="p-dot" style={{ 
-              background: bridgeOnline ? 'var(--cyan)' : 'var(--red)', 
-              boxShadow: bridgeOnline ? '0 0 6px var(--cyan)' : '0 0 6px var(--red)' 
+            <div className="p-dot" style={{
+              background: bridgeOnline ? 'var(--cyan)' : 'var(--red)',
+              boxShadow: bridgeOnline ? '0 0 6px var(--cyan)' : '0 0 6px var(--red)'
             }} />
           </div>
           <div className="metric-val">{bridgeOnline ? 'CONNECTED' : 'OFFLINE'}</div>
@@ -821,9 +823,9 @@ function App() {
         </div>
 
         {/* System Metrics */}
-        <div 
-          className="glass-panel left-hud-card" 
-          tabIndex={0} 
+        <div
+          className="glass-panel left-hud-card"
+          tabIndex={0}
           role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('analytics'); }}
         >
@@ -851,9 +853,9 @@ function App() {
         </div>
 
         {/* Omega Live Feed */}
-        <div 
-          className="glass-panel left-hud-card" 
-          tabIndex={0} 
+        <div
+          className="glass-panel left-hud-card"
+          tabIndex={0}
           role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('omega'); }}
         >
@@ -874,9 +876,9 @@ function App() {
         </div>
 
         {/* Omega API Gate */}
-        <div 
-          className="glass-panel left-hud-card" 
-          tabIndex={0} 
+        <div
+          className="glass-panel left-hud-card"
+          tabIndex={0}
           role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('api_server'); }}
         >
@@ -895,23 +897,23 @@ function App() {
         </div>
 
         {/* Recruit Hub Feed */}
-        <div 
-          className="glass-panel left-hud-card" 
-          tabIndex={0} 
+        <div
+          className="glass-panel left-hud-card"
+          tabIndex={0}
           role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('recruit'); }}
         >
           <div className="panel-header-row">
             <span className="p-lbl">RECRUIT HUB FEED</span>
-            <div className="p-dot" style={{ 
-              background: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)', 
-              boxShadow: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? '0 0 6px var(--green)' : '0 0 6px var(--red)' 
+            <div className="p-dot" style={{
+              background: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)',
+              boxShadow: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? '0 0 6px var(--green)' : '0 0 6px var(--red)'
             }} />
           </div>
           <div style={{ fontSize: '0.45rem', lineHeight: 1.4 }}>
-            <div>PORT: <span style={{ 
-              color: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)', 
-              fontWeight: 'bold' 
+            <div>PORT: <span style={{
+              color: nodes.find(n => n.id === 'recruit')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)',
+              fontWeight: 'bold'
             }}>{nodes.find(n => n.id === 'recruit')?.stat || 'STANDBY'}</span></div>
             <div>GIT: <span style={{ color: 'var(--green)', fontWeight: 'bold' }}>CLEAN</span></div>
             <div style={{ color: '#5b7089', fontSize: '0.42rem', margin: '2px 0' }}>PATH: <span style={{ color: 'var(--green)', fontWeight: 'bold' }}>READY</span></div>
@@ -922,10 +924,10 @@ function App() {
         </div>
 
         {/* Nexus Runtime */}
-        <div 
-          className="glass-panel left-hud-card" 
-          style={{ borderColor: 'rgba(0, 210, 255, 0.25)' }} 
-          tabIndex={0} 
+        <div
+          className="glass-panel left-hud-card"
+          style={{ borderColor: 'rgba(0, 210, 255, 0.25)' }}
+          tabIndex={0}
           role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('runtime'); }}
         >
@@ -937,9 +939,9 @@ function App() {
             <div>STATUS: <span style={{ color: 'var(--green)', fontWeight: 'bold' }}>ACTIVE</span></div>
             <div>TIMELINE: <span style={{ color: 'var(--cyan)', fontWeight: 'bold' }}>MONITORED</span></div>
             <div className="card-actions-wrapper" style={{ marginTop: '5px' }}>
-              <button 
-                className="drawer-btn" 
-                style={{ padding: '4px', fontSize: '0.42rem', background: 'rgba(0, 210, 255, 0.08)' }} 
+              <button
+                className="drawer-btn"
+                style={{ padding: '4px', fontSize: '0.42rem', background: 'rgba(0, 210, 255, 0.08)' }}
                 onClick={(e) => { e.stopPropagation(); handleExecute('runtime-open-timeline', 'NEXUS RUNTIME'); }}
               >
                 OPEN RUNTIME TIMELINE
@@ -951,10 +953,10 @@ function App() {
         </div>
 
         {/* Knowledge Core */}
-        <div 
-          className="glass-panel left-hud-card purple-theme" 
-          style={{ borderColor: 'rgba(213, 0, 249, 0.25)' }} 
-          tabIndex={0} 
+        <div
+          className="glass-panel left-hud-card purple-theme"
+          style={{ borderColor: 'rgba(213, 0, 249, 0.25)' }}
+          tabIndex={0}
           role="button"
           onClick={(e) => { e.stopPropagation(); setFocusedNodeId('anti'); }}
         >
@@ -966,9 +968,9 @@ function App() {
             <div>CATALOG: <span style={{ color: '#fff', fontWeight: 'bold' }}>15 REPOS</span></div>
             <div>STATE: <span style={{ color: 'var(--cyan)', fontWeight: 'bold' }}>ONLINE</span></div>
             <div className="card-actions-wrapper" style={{ marginTop: '5px' }}>
-              <button 
-                className="drawer-btn" 
-                style={{ padding: '4px', fontSize: '0.42rem', borderColor: 'rgba(213, 0, 249, 0.4)', color: '#d500f9', background: 'rgba(213, 0, 249, 0.05)' }} 
+              <button
+                className="drawer-btn"
+                style={{ padding: '4px', fontSize: '0.42rem', borderColor: 'rgba(213, 0, 249, 0.4)', color: '#d500f9', background: 'rgba(213, 0, 249, 0.05)' }}
                 onClick={(e) => { e.stopPropagation(); setKernelOpen(true); }}
               >
                 ⚡ INTELLIGENCE KERNEL
@@ -981,7 +983,7 @@ function App() {
       </div>
 
       {/* FLOATING LAUNCH CONTROLLER */}
-      <div 
+      <div
         className={`floating-launcher ${isLauncherCollapsed ? 'collapsed' : ''} ${isDragging ? 'dragging' : ''}`}
         style={{
           transform: `translate(${launcherCoords.x}px, ${launcherCoords.y}px)`
@@ -992,9 +994,9 @@ function App() {
             <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--cyan)"><path d="M12 2L2 22h20L12 2zm0 3.6l6.8 13.4H5.2L12 5.6z"/></svg>
             <span style={{ fontSize: '0.52rem', color: '#00d2ff', fontWeight: 800, letterSpacing: '1.5px', textTransform: 'uppercase' }}>LAUNCH CONTROLLER</span>
           </div>
-          <button 
-            className="btn-toggle-launcher" 
-            onClick={(e) => { e.stopPropagation(); setIsLauncherCollapsed(!isLauncherCollapsed); }} 
+          <button
+            className="btn-toggle-launcher"
+            onClick={(e) => { e.stopPropagation(); setIsLauncherCollapsed(!isLauncherCollapsed); }}
             title="Minimize/Maximize"
           >
             <span style={{ fontWeight: 'bold', fontFamily: 'monospace' }}>{isLauncherCollapsed ? '+' : '−'}</span>
@@ -1023,8 +1025,8 @@ function App() {
               <span>OMEGA API GATEWAY</span>
               <span style={{ color: 'var(--amber)' }}>PORT 5001</span>
             </div>
-            <button 
-              className="btn-launch-primary" 
+            <button
+              className="btn-launch-primary"
               style={{
                 background: 'rgba(255, 171, 0, 0.05)',
                 borderColor: 'rgba(255, 171, 0, 0.4)',
@@ -1063,14 +1065,14 @@ function App() {
           <div className="launcher-section" style={{ marginTop: '1.2rem' }}>
             <div className="launcher-sec-lbl">
               <span>TELEGRAM AGENT</span>
-              <span style={{ 
+              <span style={{
                 color: nodes.find(n => n.id === 'telegram_agent')?.stat === 'ACTIVE' ? 'var(--green)' : 'var(--red)'
               }}>
                 {nodes.find(n => n.id === 'telegram_agent')?.stat || 'STANDBY'}
               </span>
             </div>
-            <button 
-              className="btn-launch-primary" 
+            <button
+              className="btn-launch-primary"
               style={{
                 background: 'rgba(213, 0, 249, 0.05)',
                 borderColor: 'rgba(213, 0, 249, 0.4)',
@@ -1089,12 +1091,12 @@ function App() {
               <button className="btn-sub-control" onClick={() => handleExecute('telegram-logs', 'TELEGRAM AGENT')}>Logs</button>
             </div>
             {telegramError && (
-              <div className="telegram-error-hud" style={{ 
-                marginTop: '6px', 
-                fontSize: '0.42rem', 
-                color: 'var(--red)', 
-                background: 'rgba(255, 23, 68, 0.05)', 
-                padding: '4px', 
+              <div className="telegram-error-hud" style={{
+                marginTop: '6px',
+                fontSize: '0.42rem',
+                color: 'var(--red)',
+                background: 'rgba(255, 23, 68, 0.05)',
+                padding: '4px',
                 border: '1px solid rgba(255, 23, 68, 0.2)',
                 borderRadius: '2px',
                 wordBreak: 'break-all'
@@ -1228,8 +1230,8 @@ function App() {
             </svg>
             REAR-CHANNEL LOG
           </span>
-          <span 
-            style={{ fontSize: '0.48rem', color: '#445467', cursor: 'pointer', fontWeight: 'bold' }} 
+          <span
+            style={{ fontSize: '0.48rem', color: '#445467', cursor: 'pointer', fontWeight: 'bold' }}
             onClick={(e) => { e.stopPropagation(); setLogs([]); }}
           >
             [ CLEAR LOG ]
@@ -1277,6 +1279,9 @@ function App() {
         </div>
       </footer>
 
+      {/* NEXUS BRAIN WORKSPACE V0 */}
+      {brainOpen && <NexusBrainWorkspace onClose={() => setBrainOpen(false)} />}
+
       {/* NEXUS INTELLIGENCE KERNEL v0 */}
       {kernelOpen && <KernelLibrary onClose={() => setKernelOpen(false)} />}
     </div>
@@ -1284,3 +1289,5 @@ function App() {
 }
 
 export default App;
+
+
