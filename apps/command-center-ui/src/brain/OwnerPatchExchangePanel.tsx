@@ -9,6 +9,7 @@ export function OwnerPatchExchangePanel() {
   const [generatedCmd, setGeneratedCmd] = useState('');
 
   const [zipPath, setZipPath] = useState('');
+  const [taskPackDir, setTaskPackDir] = useState('');
   const [inspectCmd, setInspectCmd] = useState('');
 
   const handleCreatePack = () => {
@@ -17,13 +18,14 @@ export function OwnerPatchExchangePanel() {
   };
 
   const handleInspect = () => {
-    const cmd = `node scripts/agent-exchange/inspect-return-zip.mjs "${zipPath}"`;
+    const extractDir = `D:\\NEXUS\\AGENT_INBOX\\TEMP_EXTRACT_${Date.now()}`;
+    const cmd = `powershell -Command "Expand-Archive -Path '${zipPath}' -DestinationPath '${extractDir}' -Force"; node scripts/agent-exchange/inspect-return-zip.mjs "${extractDir}" "${taskPackDir}"`;
     setInspectCmd(cmd);
   };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', padding: '10px' }}>
-      <h2>Owner Patch Exchange</h2>
+      <h2>Owner Patch Exchange V1</h2>
       
       <div style={{ background: '#111', padding: '15px', border: '1px solid #333' }}>
         <h3 style={{ color: 'var(--cyan)' }}>1. Create Task Pack</h3>
@@ -34,33 +36,29 @@ export function OwnerPatchExchangePanel() {
         <input type="text" placeholder="Allowed Files (comma separated)" value={allowedFiles} onChange={e => setAllowedFiles(e.target.value)} style={{ display: 'block', margin: '10px 0', padding: '8px', width: '100%', background: '#222', color: '#fff', border: '1px solid #444' }} />
         <textarea placeholder="Instructions" value={instructions} onChange={e => setInstructions(e.target.value)} rows={3} style={{ display: 'block', margin: '10px 0', padding: '8px', width: '100%', background: '#222', color: '#fff', border: '1px solid #444' }} />
         <button onClick={handleCreatePack} style={{ padding: '8px 16px', background: 'var(--cyan)', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Generate Creation Command</button>
-        {generatedCmd && <pre style={{ background: '#000', padding: '10px', marginTop: '10px', color: '#00d2ff', border: '1px solid #444' }}>{generatedCmd}</pre>}
+        {generatedCmd && <pre style={{ background: '#000', padding: '10px', marginTop: '10px', color: '#00d2ff', border: '1px solid #444', overflowX: 'auto' }}>{generatedCmd}</pre>}
       </div>
 
       <div style={{ background: '#111', padding: '15px', border: '1px solid #333' }}>
         <h3 style={{ color: 'var(--amber)' }}>2. Import Returned Patch ZIP</h3>
         <input type="text" placeholder="Path to returned ZIP (e.g. D:\NEXUS\AGENT_INBOX\patch.zip)" value={zipPath} onChange={e => setZipPath(e.target.value)} style={{ display: 'block', margin: '10px 0', padding: '8px', width: '100%', background: '#222', color: '#fff', border: '1px solid #444' }} />
+        <input type="text" placeholder="Original Task Pack Folder (e.g. D:\NEXUS\AGENT_TASK_PACKS\TASK_...)" value={taskPackDir} onChange={e => setTaskPackDir(e.target.value)} style={{ display: 'block', margin: '10px 0', padding: '8px', width: '100%', background: '#222', color: '#fff', border: '1px solid #444' }} />
         <button onClick={handleInspect} style={{ padding: '8px 16px', background: 'var(--amber)', color: '#000', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>Generate Inspect Command</button>
-        {inspectCmd && <pre style={{ background: '#000', padding: '10px', marginTop: '10px', color: '#ffab00', border: '1px solid #444' }}>{inspectCmd}</pre>}
+        {inspectCmd && <pre style={{ background: '#000', padding: '10px', marginTop: '10px', color: '#ffab00', border: '1px solid #444', overflowX: 'auto' }}>{inspectCmd}</pre>}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
         <div style={{ background: '#1a1a1a', padding: '15px', border: '1px solid #444' }}>
           <h3 style={{ color: '#00d2ff' }}>3. Review Patch</h3>
-          <p style={{ fontSize: '12px', color: '#aaa' }}>Check `review_report.md` and `risk_report.md` in AGENT_REVIEW folder.</p>
+          <p style={{ fontSize: '12px', color: '#aaa' }}>Check `review_report.md` in AGENT_REVIEW.</p>
+          <div style={{ padding: '5px', background: '#333', display: 'inline-block', fontSize: '11px', marginTop: '10px', color: '#00d2ff' }}>STATUS: SAFE TO REVIEW / REJECTED</div>
         </div>
         <div style={{ background: '#220000', padding: '15px', border: '1px solid #ff1744' }}>
           <h3 style={{ color: '#ff1744' }}>4. Owner Approval Gate</h3>
           <p style={{ fontSize: '12px', color: '#ffab00' }}>Explicit approval required. No auto-apply.</p>
-          <button disabled style={{ padding: '8px', background: '#333', color: '#777', border: 'none' }}>Approve (Not Implemented in V0)</button>
-        </div>
-        <div style={{ background: '#1a1a1a', padding: '15px', border: '1px solid #444' }}>
-          <h3 style={{ color: '#00d2ff' }}>5. Apply Plan Preview</h3>
-          <p style={{ fontSize: '12px', color: '#aaa' }}>Read `apply_plan.md`.</p>
-        </div>
-        <div style={{ background: '#1a1a1a', padding: '15px', border: '1px solid #444' }}>
-          <h3 style={{ color: '#00d2ff' }}>6. Rejection / Notes</h3>
-          <p style={{ fontSize: '12px', color: '#aaa' }}>Move to AGENT_REJECTED if failed.</p>
+          <div style={{ padding: '5px', background: '#333', display: 'inline-block', fontSize: '11px', color: '#ffab00', marginBottom: '10px' }}>NEEDS OWNER APPROVAL</div>
+          <br/>
+          <button disabled style={{ padding: '8px', background: '#333', color: '#777', border: 'none' }}>Approve (Not Implemented in V1)</button>
         </div>
       </div>
     </div>
