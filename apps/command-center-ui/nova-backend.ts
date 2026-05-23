@@ -104,13 +104,73 @@ export function novaBackendPlugin(): import('vite').Plugin {
 
             const applyReplyPolish = (reply: string) => {
               let polished = reply;
-              if (localStatusStr.includes('Bridge Daemon: OFFLINE') && !polished.includes('Audit Bridge Daemon status only.')) {
-                if (!polished.includes('أمر جاهز لحمادة:')) {
-                  polished += '\n\nأمر جاهز لحمادة:\n';
+
+              // 1. Remove bad filler sentences
+              const fillers = [
+                /لم تُقدم أي معلومات حول السيستم[.،]?/g,
+                /لم يتم تقديم معلومات[.،]?/g,
+                /لا توجد معلومات حول النظام[.،]?/g,
+                /بناءً على المعلومات المتاحة، لم يتم تقديم أي معلومات حول حالة النظام[.،]?/g,
+                /لم يتم تقديم تفاصيل حالة النظام[.،]?/g
+              ];
+              for (const f of fillers) {
+                polished = polished.replace(f, '');
+              }
+
+              // 2. Technical name normalization
+              const normalizations: [RegExp, string][] = [
+                [/هامادة/g, 'Hamada'],
+                [/نوفا/g, 'NOVA'],
+                [/أولاما/g, 'Ollama'],
+                [/بريدج ديمون/g, 'Bridge Daemon'],
+                [/بريد ديمون البرج/g, 'Bridge Daemon'],
+                [/بريد ديمون/g, 'Bridge Daemon'],
+                [/ديمون البرج/g, 'Bridge Daemon'],
+                [/أنتيجرافيتي/g, 'Antigravity'],
+                [/أنتي\s+جرافيتي/g, 'Antigravity'],
+                [/انتيجرافيتي/g, 'Antigravity'],
+                [/أوميجا/g, 'Omega'],
+                [/ريكروتمنت/g, 'Recruitment']
+              ];
+              for (const [regex, replacement] of normalizations) {
+                polished = polished.replace(regex, replacement);
+              }
+
+              // Ensure Bridge Daemon doesn't get double replaced or malformed
+              polished = polished.replace(/Bridge Daemon Daemon/g, 'Bridge Daemon');
+
+              // 3. Force clean sections if Bridge Daemon is offline
+              if (localStatusStr.includes('Bridge Daemon: OFFLINE')) {
+                // Extract the "الحالة الحالية" section if it exists, otherwise build it dynamically
+                let currentStatusSec = '';
+                const statusMatch = polished.match(/(الحالة الحالية:[\s\S]*?)(الملاحظات:|الخطوة الآمنة التالية:|أمر جاهز لحمادة:|$)/);
+                if (statusMatch && statusMatch[1]) {
+                  currentStatusSec = statusMatch[1].trim();
                 } else {
-                  polished += '\n';
+                  const ccStatus = "شغال";
+                  const gwStatus = localStatusStr.includes('Omega Gateway: ONLINE') ? 'شغال' : (localStatusStr.includes('Omega Gateway: OFFLINE') ? 'غير متصل' : 'غير مؤكد');
+                  const dashStatus = localStatusStr.includes('Omega Dashboard: ONLINE') ? 'شغال' : (localStatusStr.includes('Omega Dashboard: OFFLINE') ? 'غير متصل' : 'غير مؤكد');
+                  const recStatus = localStatusStr.includes('Recruitment Hub: ONLINE') ? 'شغال' : (localStatusStr.includes('Recruitment Hub: OFFLINE') ? 'غير متصل' : 'غير مؤكد');
+                  const bridgeStatus = 'غير متصل';
+                  const ollamaStatus = localStatusStr.includes('Ollama: ONLINE') ? 'شغال' : 'غير متصل';
+
+                  currentStatusSec = `الحالة الحالية:
+* Command Center: ${ccStatus}
+* Omega Gateway: ${gwStatus}
+* Omega Dashboard: ${dashStatus}
+* Recruitment Hub: ${recStatus}
+* Bridge Daemon: ${bridgeStatus}
+* Ollama: ${ollamaStatus}`;
                 }
-                polished += `HAMADA — AUDIT ONLY — BRIDGE DAEMON STATUS
+
+                const notesSec = `الملاحظات:
+* Bridge Daemon غير متصل، لذلك تنفيذ أو استقبال أوامر Hamada عبر الجسر غير متاح حالياً.`;
+
+                const nextStepSec = `الخطوة الآمنة التالية:
+* تنفيذ Audit Only على Bridge Daemon لمعرفة سبب عدم الاتصال، بدون أي تعديل أو Restart إلا بموافقة صريحة.`;
+
+                const commandTemplate = `أمر جاهز لحمادة:
+HAMADA — AUDIT ONLY — BRIDGE DAEMON STATUS
 
 Scope:
 D:\\NEXUS\\PROJECTS\\nexus-command-center
@@ -143,8 +203,31 @@ Report:
 * Reason if found
 * Recommendation
 * Confirmation no code changed unless explicitly required`;
+
+                polished = `${currentStatusSec}\n\n${notesSec}\n\n${nextStepSec}\n\n${commandTemplate}`;
               }
-              return polished;
+
+              // 4. Deduplicate command title if it somehow appears twice
+              const commandTitle = "HAMADA — AUDIT ONLY — BRIDGE DAEMON STATUS";
+              const titleIndices: number[] = [];
+              let idx = polished.indexOf(commandTitle);
+              while (idx !== -1) {
+                titleIndices.push(idx);
+                idx = polished.indexOf(commandTitle, idx + 1);
+              }
+              if (titleIndices.length > 1) {
+                const firstPart = polished.slice(0, titleIndices[1]);
+                const secondPart = polished.slice(titleIndices[1] + commandTitle.length);
+                polished = firstPart + secondPart;
+              }
+
+              // Final normalization sweep to clean up any reconstructed names
+              for (const [regex, replacement] of normalizations) {
+                polished = polished.replace(regex, replacement);
+              }
+              polished = polished.replace(/Bridge Daemon Daemon/g, 'Bridge Daemon');
+
+              return polished.trim();
             };
 
             const systemPrompt = `You are NOVA, a Strategic Local AI Advisor inside NEXUS Command Center.
