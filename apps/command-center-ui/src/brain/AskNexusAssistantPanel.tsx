@@ -195,7 +195,7 @@ export function AskNexusAssistantPanel() {
       </div>
 
       <div style={{ textAlign: 'center', fontSize: '12px', color: '#00d2ff', marginTop: '10px' }}>
-        تقدر تسأل نوفا بالعربي عن حالة النظام، أوميجا، التوظيف، حمادة، أو الخطوة التالية.
+        اسأل NOVA بالعربي: حالة السيستم إيه؟
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '5px', background: 'rgba(255, 255, 255, 0.02)', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>

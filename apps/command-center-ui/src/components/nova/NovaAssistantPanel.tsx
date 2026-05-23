@@ -428,7 +428,7 @@ export function NovaAssistantPanel({
             <span>Press / for commands</span>
           </div>
           <span style={{ color: '#8a99ad', fontSize: '0.42rem' }}>|</span>
-          <span style={{ color: '#00d2ff', fontSize: '0.45rem' }}>تقدر تسأل نوفا بالعربي عن حالة النظام، أوميجا، التوظيف، حمادة، أو الخطوة التالية.</span>
+          <span style={{ color: '#00d2ff', fontSize: '0.45rem' }}>اسأل NOVA بالعربي: حالة السيستم إيه؟</span>
           <button 
             onClick={() => handleSend('نوفا، راجعي حالة السيستم كله وقوليلي إيه اللي شغال وإيه اللي واقع وإيه الخطوة الآمنة التالية.')}
             style={{

@@ -99,8 +99,53 @@ export function novaBackendPlugin(): import('vite').Plugin {
               const dash = await fetch('http://localhost:3000').then(r=>r.ok).catch(()=>false);
               const rec = await fetch('http://localhost:3820').then(r=>r.ok).catch(()=>false);
               const bridge = await fetch('http://localhost:9999/api/ping').then(r=>r.ok).catch(()=>false);
-              localStatusStr = `Command Center: ONLINE. Omega Gateway: ${gw?'ONLINE':'OFFLINE'}. Omega Dashboard: ${dash?'ONLINE':'OFFLINE'}. Recruitment Hub: ${rec?'ONLINE':'OFFLINE'}. Bridge Daemon: ${bridge?'ONLINE':'OFFLINE'}.`;
+              localStatusStr = `Command Center: ONLINE. Omega Gateway: ${gw?'ONLINE':'OFFLINE'}. Omega Dashboard: ${dash?'ONLINE':'OFFLINE'}. Recruitment Hub: ${rec?'ONLINE':'OFFLINE'}. Bridge Daemon: ${bridge?'ONLINE':'OFFLINE'}. Ollama: ${ollamaOnline?'ONLINE':'OFFLINE'}.`;
             } catch(e) {}
+
+            const applyReplyPolish = (reply: string) => {
+              let polished = reply;
+              if (localStatusStr.includes('Bridge Daemon: OFFLINE') && !polished.includes('Audit Bridge Daemon status only.')) {
+                if (!polished.includes('أمر جاهز لحمادة:')) {
+                  polished += '\n\nأمر جاهز لحمادة:\n';
+                } else {
+                  polished += '\n';
+                }
+                polished += `HAMADA — AUDIT ONLY — BRIDGE DAEMON STATUS
+
+Scope:
+D:\\NEXUS\\PROJECTS\\nexus-command-center
+
+Goal:
+Audit Bridge Daemon status only.
+
+Rules:
+* Do NOT modify code.
+* Do NOT push.
+* Do NOT run migrations.
+* Do NOT read secrets.
+* Do NOT touch Omega or Recruitment.
+* Audit only.
+
+Steps:
+1. Check current Bridge Daemon process/status.
+2. Check expected bridge port or health endpoint.
+3. Check why Command Center sees Bridge Daemon as OFFLINE.
+4. Do not restart unless explicitly approved.
+5. Return findings and safe next action.
+
+Validation:
+* git status --short
+* pnpm -C apps/command-center-ui run build if files changed.
+
+Report:
+* Bridge status
+* Port/endpoint checked
+* Reason if found
+* Recommendation
+* Confirmation no code changed unless explicitly required`;
+              }
+              return polished;
+            };
 
             const systemPrompt = `You are NOVA, a Strategic Local AI Advisor inside NEXUS Command Center.
 You do not execute commands directly. Hamada / Antigravity is the Execution Engineer.
@@ -109,15 +154,75 @@ If the user asks to modify something, prepare a clear command for Hamada instead
 Explain the system state based on the following available local-status: ${localStatusStr}
 
 CRITICAL RULES:
-- If the user writes Arabic, reply in Arabic.
-- Keep response concise and operational.
-- Use real system status from local-status. Never claim a service is online unless local-status says online.
-- If a status is unknown, say "غير مؤكد" not "شغال".
-- Separate answer into:
-  1. الحالة الحالية
-  2. المشاكل/الملاحظات
-  3. الخطوة الآمنة التالية
-  4. أمر جاهز لحمادة إذا لزم
+1. If the user writes Arabic, reply in clean Egyptian-friendly Arabic.
+2. Technical names must remain English exactly:
+   Command Center
+   Omega Gateway
+   Omega Dashboard
+   Recruitment Hub
+   Bridge Daemon
+   Ollama
+   NOVA
+   Hamada
+   Antigravity
+3. Never translate service names.
+4. Never invent status.
+5. If status unknown: say "غير مؤكد".
+6. If offline: say "غير متصل".
+7. If online: say "شغال".
+8. Do not say all systems are green if any status is offline/unknown.
+9. You MUST include ALL 4 sections in the response, using the exact headers below. Never omit the "أمر جاهز لحمادة:" section.
+
+Standard Arabic response format (MUST match this layout exactly):
+الحالة الحالية:
+* Command Center: [شغال / غير متصل / غير مؤكد]
+* Omega Gateway: [شغال / غير متصل / غير مؤكد]
+* Omega Dashboard: [شغال / غير متصل / غير مؤكد]
+* Recruitment Hub: [شغال / غير متصل / غير مؤكد]
+* Bridge Daemon: [شغال / غير متصل / غير مؤكد]
+* Ollama: [شغال / غير متصل / غير مؤكد]
+
+الملاحظات:
+* [ملاحظة مختصرة وواضحة]
+
+الخطوة الآمنة التالية:
+* [خطوة واحدة فقط]
+
+أمر جاهز لحمادة:
+[If Bridge Daemon is offline (which is "غير متصل"), you MUST copy the exact text below into this section. Do not modify it. If Bridge Daemon is online, generate a relevant safe command block.]
+HAMADA — AUDIT ONLY — BRIDGE DAEMON STATUS
+
+Scope:
+D:\\NEXUS\\PROJECTS\\nexus-command-center
+
+Goal:
+Audit Bridge Daemon status only.
+
+Rules:
+* Do NOT modify code.
+* Do NOT push.
+* Do NOT run migrations.
+* Do NOT read secrets.
+* Do NOT touch Omega or Recruitment.
+* Audit only.
+
+Steps:
+1. Check current Bridge Daemon process/status.
+2. Check expected bridge port or health endpoint.
+3. Check why Command Center sees Bridge Daemon as OFFLINE.
+4. Do not restart unless explicitly approved.
+5. Return findings and safe next action.
+
+Validation:
+* git status --short
+* pnpm -C apps/command-center-ui run build if files changed.
+
+Report:
+* Bridge status
+* Port/endpoint checked
+* Reason if found
+* Recommendation
+* Confirmation no code changed unless explicitly required
 
 Be concise and operational. Maintain your advisory role.`;
 
@@ -144,16 +249,21 @@ Be concise and operational. Maintain your advisory role.`;
                     messages: [
                       { role: 'system', content: systemPrompt },
                       { role: 'user', content: `Scope: ${data.projectScope || 'Global'}\nMessage: ${data.message}` }
-                    ]
+                    ],
+                    options: {
+                      num_predict: 1024,
+                      temperature: 0.1
+                    }
                   })
                 });
 
                 if (chatRes.ok) {
                   const chatData = await chatRes.json() as any;
+                  const rawReply = chatData.message?.content || "No content returned from local model.";
                   res.setHeader('Content-Type', 'application/json');
                   res.end(JSON.stringify({
                     ok: true,
-                    reply: chatData.message?.content || "No content returned from local model.",
+                    reply: applyReplyPolish(rawReply),
                     mode: data.mode || "advisor",
                     provider: 'ollama',
                     model: selectedModel
@@ -219,7 +329,7 @@ Be concise and operational. Maintain your advisory role.`;
                   res.setHeader('Content-Type', 'application/json');
                   res.end(JSON.stringify({
                     ok: true,
-                    reply: replyText,
+                    reply: applyReplyPolish(replyText),
                     mode: data.mode || "advisor",
                     provider: 'openai'
                   }));
