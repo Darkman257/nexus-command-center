@@ -193,6 +193,17 @@ export function App() {
     return () => clearInterval(id);
   }, []);
 
+  // Escape key handler to close dock
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setActiveDockTab(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   // Build alerts list
   const alerts: { msg: string; type: 'warn' | 'critical' | 'ok' }[] = [];
   if (!bridgeOnline) alerts.push({ msg: 'Bridge Daemon Offline', type: 'critical' });
@@ -288,65 +299,76 @@ export function App() {
         />
 
         {/* COLLAPSIBLE TACTICAL DOCK (BOTTOM) */}
-        <div className={`nova-tactical-dock ${activeDockTab ? 'expanded' : 'collapsed'}`}>
-          {/* Centered handle/chevron notch */}
-          <div
-            className="dock-handle-tab"
-            onClick={() => setActiveDockTab(activeDockTab ? null : 'timeline')}
-          >
-            <span>{activeDockTab ? '▼ DOCK OPEN' : '▲ OPEN TACTICAL DOCK'}</span>
-          </div>
-
-          {/* Drawer Content */}
+        <div className="tactical-dock-shell">
           {activeDockTab && (
-            <div className="dock-drawer-content glass">
-              {activeDockTab === 'timeline' && (
-                <NovaTimeline entries={chatLog} isLoading={isNovaLoading} />
-              )}
-              {activeDockTab === 'logs' && (
-                <NovaRearChannel logs={rearLogs} onClear={() => setRearLogs([])} />
-              )}
-              {activeDockTab === 'narrative' && (
-                <NovaNarrative
-                  omegaOnline={omegaStatus.status === 'online'}
-                  novaOnline={novaStatus.online}
-                  bridgeOnline={bridgeOnline}
-                  novaProvider={novaStatus.selectedProvider}
-                />
-              )}
-              {activeDockTab === 'alerts' && (
-                <div className="dock-placeholder-view">
-                  <h4>ALERTS</h4>
-                  <div className="dock-alerts-list">
-                    {alerts.length === 0 ? (
-                      <div className="dock-alert-ok">All systems functioning nominally.</div>
-                    ) : (
-                      alerts.map((a, idx) => (
-                        <div key={idx} className={`dock-alert-item alert-${a.type}`}>
-                          <span>● {a.msg}</span>
-                        </div>
-                      ))
-                    )}
+            <div className="tactical-dock-drawer glass">
+              <div className="dock-drawer-header">
+                <div className="dock-drawer-title">
+                  {activeDockTab === 'timeline' && 'TIMELINE'}
+                  {activeDockTab === 'logs' && 'LOGS'}
+                  {activeDockTab === 'narrative' && 'NOVA MEMORY'}
+                  {activeDockTab === 'alerts' && 'ALERTS'}
+                  {activeDockTab === 'reports' && 'REPORTS'}
+                  {activeDockTab === 'approvals' && 'OWNER APPROVALS'}
+                </div>
+                <button className="dock-drawer-close-btn" onClick={() => setActiveDockTab(null)}>
+                  MINIMIZE DOCK
+                </button>
+              </div>
+              <div className="dock-drawer-body">
+                {activeDockTab === 'timeline' && (
+                  chatLog.length === 0 ? (
+                    <div className="dock-empty-state">No entries yet.</div>
+                  ) : (
+                    <NovaTimeline entries={chatLog} isLoading={isNovaLoading} />
+                  )
+                )}
+                {activeDockTab === 'logs' && (
+                  rearLogs.length === 0 ? (
+                    <div className="dock-empty-state">No entries yet.</div>
+                  ) : (
+                    <NovaRearChannel logs={rearLogs} onClear={() => setRearLogs([])} />
+                  )
+                )}
+                {activeDockTab === 'narrative' && (
+                  <NovaNarrative
+                    omegaOnline={omegaStatus.status === 'online'}
+                    novaOnline={novaStatus.online}
+                    bridgeOnline={bridgeOnline}
+                    novaProvider={novaStatus.selectedProvider}
+                  />
+                )}
+                {activeDockTab === 'alerts' && (
+                  <div className="dock-placeholder-view">
+                    <div className="dock-alerts-list">
+                      {alerts.length === 0 ? (
+                        <div className="dock-alert-ok">All systems functioning nominally.</div>
+                      ) : (
+                        alerts.map((a, idx) => (
+                          <div key={idx} className={`dock-alert-item alert-${a.type}`}>
+                            <span>● {a.msg}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-              {activeDockTab === 'reports' && (
-                <div className="dock-placeholder-view">
-                  <h4>REPORTS</h4>
-                  <p>All pipeline compilation nodes are fully compiled. 0 execution exceptions caught.</p>
-                </div>
-              )}
-              {activeDockTab === 'approvals' && (
-                <div className="dock-placeholder-view">
-                  <h4>OWNER APPROVALS</h4>
-                  <p>NOVA runtime is restricted to system advice. 0 authorization requests pending.</p>
-                </div>
-              )}
+                )}
+                {activeDockTab === 'reports' && (
+                  <div className="dock-placeholder-view">
+                    <p>All pipeline compilation nodes are fully compiled. 0 execution exceptions caught.</p>
+                  </div>
+                )}
+                {activeDockTab === 'approvals' && (
+                  <div className="dock-placeholder-view">
+                    <p>NOVA runtime is restricted to system advice. 0 authorization requests pending.</p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {/* Dock Bar */}
-          <div className="dock-bar glass">
+          <div className="tactical-dock-bar glass">
             <div className="dock-triggers">
               <button
                 className={`dock-tab-btn ${activeDockTab === 'timeline' ? 'active' : ''}`}
@@ -441,7 +463,7 @@ export function App() {
               <span>{activeDockTab ? 'MINIMIZE DOCK' : 'OPEN TACTICAL DOCK'}</span>
             </button>
           </div>
-      </div>
+        </div>
       </div>
 
       {/* Modals */}

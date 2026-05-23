@@ -54,16 +54,16 @@ input  { font-family: var(--mono); outline: none; }
 .nova-deck {
   position: relative;
   display: grid;
-  grid-template-rows: 52px 1fr auto;
+  grid-template-rows: 52px 1fr;
   grid-template-columns: 68px 1fr 310px;
   grid-template-areas:
     "topbar topbar topbar"
-    "left   center right"
-    "bottom bottom bottom";
+    "left   center right";
   width: 100vw;
   height: 100vh;
   gap: 12px;
   padding: 12px;
+  padding-bottom: 96px;
   z-index: 10;
 }
 
@@ -1036,26 +1036,31 @@ input  { font-family: var(--mono); outline: none; }
 /* ================================================
    COLLAPSIBLE TACTICAL DOCK (BOTTOM)
    ================================================ */
-.nova-tactical-dock {
-  grid-area: bottom;
-  display: flex;
-  flex-direction: column;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  background: transparent;
-  z-index: 90;
-  position: relative;
+.tactical-dock-shell {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 1000;
+  pointer-events: none;
 }
 
-.dock-bar {
-  height: 48px;
+.tactical-dock-bar,
+.tactical-dock-drawer {
+  pointer-events: auto;
+}
+
+.tactical-dock-bar {
+  height: 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: rgba(3, 8, 16, 0.7);
+  background: rgba(10, 10, 10, 0.85);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(25px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
 }
 
 .dock-triggers {
@@ -1140,32 +1145,6 @@ input  { font-family: var(--mono); outline: none; }
   font-weight: 500;
 }
 
-.dock-handle-tab {
-  align-self: center;
-  background: rgba(3, 8, 16, 0.8);
-  border: 1px solid var(--border);
-  border-bottom: none;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  padding: 4px 16px;
-  font-family: var(--mono);
-  font-size: 0.42rem;
-  font-weight: 700;
-  color: var(--cyan);
-  cursor: pointer;
-  z-index: 100;
-  backdrop-filter: blur(10px);
-  transition: all 0.2s;
-  letter-spacing: 1px;
-  margin-bottom: -1px;
-}
-
-.dock-handle-tab:hover {
-  border-color: var(--cyan);
-  color: #fff;
-  background: rgba(0, 210, 255, 0.1);
-}
-
 .open-dock-btn {
   background: rgba(0, 210, 255, 0.05);
   border: 1px solid rgba(0, 210, 255, 0.2);
@@ -1198,24 +1177,84 @@ input  { font-family: var(--mono); outline: none; }
   50% { color: var(--red); background: rgba(255,23,68,0.05); }
 }
 
-/* Expanded drawer */
-.dock-drawer-content {
-  height: 24vh;
-  max-height: 24vh;
-  margin-top: 6px;
-  padding: 12px;
-  display: flex;
-  gap: 12px;
+/* Expanded drawer ABOVE bottom bar */
+.tactical-dock-drawer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 84px;
+  height: min(32vh, 340px);
+  min-height: 220px;
+  max-height: 340px;
   overflow: hidden;
-  border-top: 1px solid var(--border);
-  background: rgba(1, 4, 9, 0.85);
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
-  animation: slide-up-drawer 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(10, 10, 10, 0.9);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--cyan);
+  border-radius: var(--radius);
+  backdrop-filter: blur(25px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
 }
 
-@keyframes slide-up-drawer {
-  from { height: 0; opacity: 0; }
-  to { height: 24vh; opacity: 1; }
+.dock-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.dock-drawer-title {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: var(--cyan);
+  letter-spacing: 1px;
+}
+
+.dock-drawer-close-btn {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-family: var(--mono);
+  font-size: 0.44rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dock-drawer-close-btn:hover {
+  background: rgba(255, 23, 68, 0.15);
+  border-color: var(--red);
+  color: #fff;
+}
+
+.dock-drawer-body {
+  height: calc(100% - 48px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.dock-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 0.5rem;
+}
+
+/* Hide duplicate titles of sub-components */
+.dock-drawer-body .tl-title,
+.dock-drawer-body .rc-title,
+.dock-drawer-body .nn-title {
+  display: none;
 }
 
 /* Inner Dock placeholders */
