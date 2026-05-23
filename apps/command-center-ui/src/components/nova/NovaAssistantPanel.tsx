@@ -422,9 +422,28 @@ export function NovaAssistantPanel({
             <Send size={12} />
           </motion.button>
         </div>
-        <div className="nap-input-commands-hint">
-          <span className="hint-dot" />
-          <span>Press / for commands</span>
+        <div className="nap-input-commands-hint" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span className="hint-dot" />
+            <span>Press / for commands</span>
+          </div>
+          <span style={{ color: '#8a99ad', fontSize: '0.42rem' }}>|</span>
+          <span style={{ color: '#00d2ff', fontSize: '0.45rem' }}>تقدر تسأل نوفا بالعربي عن حالة النظام، أوميجا، التوظيف، حمادة، أو الخطوة التالية.</span>
+          <button 
+            onClick={() => handleSend('نوفا، راجعي حالة السيستم كله وقوليلي إيه اللي شغال وإيه اللي واقع وإيه الخطوة الآمنة التالية.')}
+            style={{
+              background: 'rgba(0, 210, 255, 0.1)',
+              border: '1px solid rgba(0, 210, 255, 0.3)',
+              color: '#00d2ff',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              fontSize: '0.42rem',
+              fontWeight: 600
+            }}
+          >
+            حالة النظام بالعربي
+          </button>
         </div>
       </div>
     </aside>

@@ -191,6 +191,11 @@ export function AskNexusAssistantPanel() {
         <button onClick={() => handleQuickAction('Create Patch Package', 'Create Safe Task Pack')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Create Patch Package</button>
         <button onClick={() => handleQuickAction('Audit Project', 'Audit Project State')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Audit Project</button>
         <button onClick={() => handleQuickAction('Explain Current Status', 'Explain Status')} style={{ padding: '8px 16px', background: 'rgba(255, 255, 255, 0.05)', color: '#ccc', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s' }}>Explain Current Status</button>
+        <button onClick={() => handleSend('نوفا، راجعي حالة السيستم كله وقوليلي إيه اللي شغال وإيه اللي واقع وإيه الخطوة الآمنة التالية.')} style={{ padding: '8px 16px', background: 'rgba(0, 210, 255, 0.1)', color: '#00d2ff', border: '1px solid rgba(0, 210, 255, 0.3)', borderRadius: '20px', cursor: 'pointer', fontSize: '12px', transition: 'all 0.2s', fontWeight: 600 }}>حالة النظام بالعربي</button>
+      </div>
+
+      <div style={{ textAlign: 'center', fontSize: '12px', color: '#00d2ff', marginTop: '10px' }}>
+        تقدر تسأل نوفا بالعربي عن حالة النظام، أوميجا، التوظيف، حمادة، أو الخطوة التالية.
       </div>
 
       <div style={{ display: 'flex', gap: '12px', marginTop: '5px', background: 'rgba(255, 255, 255, 0.02)', padding: '8px', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.05)' }}>

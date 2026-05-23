@@ -39,6 +39,19 @@ export function novaBackendPlugin(): import('vite').Plugin {
           if (recRes.ok) recruitmentHubStatus = true;
         } catch(e) {}
 
+        let bridgeDaemonStatus = 'unknown';
+        let bridgeNote = 'No health endpoint configured';
+        try {
+          const bridgeRes = await fetch('http://localhost:9999/api/ping');
+          if (bridgeRes.ok) {
+            bridgeDaemonStatus = 'online';
+            bridgeNote = 'Bridge Core Online';
+          }
+        } catch(e) {
+          bridgeDaemonStatus = 'offline';
+          bridgeNote = 'Bridge Core Unreachable';
+        }
+
         const selectedProvider = ollamaOnline ? 'ollama' : 'offline';
         const selectedModel = availableModels.length > 0 ? availableModels[0] : null;
 
@@ -51,7 +64,9 @@ export function novaBackendPlugin(): import('vite').Plugin {
           commandCenterOnline: true,
           omegaGatewayStatus,
           omegaDashboardStatus,
-          recruitmentHubStatus
+          recruitmentHubStatus,
+          bridgeStatus: bridgeDaemonStatus,
+          bridgeNote
         }));
       });
 
@@ -83,7 +98,8 @@ export function novaBackendPlugin(): import('vite').Plugin {
               const gw = await fetch('http://localhost:5001/api/healthz').then(r=>r.ok).catch(()=>false);
               const dash = await fetch('http://localhost:3000').then(r=>r.ok).catch(()=>false);
               const rec = await fetch('http://localhost:3820').then(r=>r.ok).catch(()=>false);
-              localStatusStr = `Command Center: ONLINE. Omega Gateway: ${gw?'ONLINE':'OFFLINE'}. Omega Dashboard: ${dash?'ONLINE':'OFFLINE'}. Recruitment Hub: ${rec?'ONLINE':'OFFLINE'}.`;
+              const bridge = await fetch('http://localhost:9999/api/ping').then(r=>r.ok).catch(()=>false);
+              localStatusStr = `Command Center: ONLINE. Omega Gateway: ${gw?'ONLINE':'OFFLINE'}. Omega Dashboard: ${dash?'ONLINE':'OFFLINE'}. Recruitment Hub: ${rec?'ONLINE':'OFFLINE'}. Bridge Daemon: ${bridge?'ONLINE':'OFFLINE'}.`;
             } catch(e) {}
 
             const systemPrompt = `You are NOVA, a Strategic Local AI Advisor inside NEXUS Command Center.
@@ -91,6 +107,17 @@ You do not execute commands directly. Hamada / Antigravity is the Execution Engi
 The user is the final approver.
 If the user asks to modify something, prepare a clear command for Hamada instead of executing it.
 Explain the system state based on the following available local-status: ${localStatusStr}
+
+CRITICAL RULES:
+- If the user writes Arabic, reply in Arabic.
+- Keep response concise and operational.
+- Use real system status from local-status. Never claim a service is online unless local-status says online.
+- If a status is unknown, say "غير مؤكد" not "شغال".
+- Separate answer into:
+  1. الحالة الحالية
+  2. المشاكل/الملاحظات
+  3. الخطوة الآمنة التالية
+  4. أمر جاهز لحمادة إذا لزم
 
 Be concise and operational. Maintain your advisory role.`;
 
