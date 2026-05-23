@@ -176,6 +176,10 @@ export function NovaAssistantPanel({
             <Send size={12} />
           </motion.button>
         </div>
+        <div className="nap-input-commands-hint">
+          <span className="hint-dot" />
+          <span>Press / for commands</span>
+        </div>
       </div>
     </aside>
   );

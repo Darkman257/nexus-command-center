@@ -94,7 +94,7 @@ export function NovaTimeline({ entries, isLoading }: Props) {
   return (
     <div className="nova-timeline-area">
       <div className="tl-header-bar">
-        <span className="tl-title">COMMAND TIMELINE</span>
+        <span className="tl-title">TIMELINE</span>
         <span className="tl-count">{entries.length} entries</span>
       </div>
       <div ref={containerRef} className="tl-scroll-container">

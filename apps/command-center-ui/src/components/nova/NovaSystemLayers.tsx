@@ -103,10 +103,29 @@ export function NovaSystemLayers({ omegaOnline, recruitStat, telStat, apiStat, o
 
   return (
     <>
+      {/* Background connection lines */}
+      <svg className="layer-svg-connections" viewBox="0 0 1000 1000" preserveAspectRatio="none">
+        <defs>
+          {layers.map(layer => (
+            <linearGradient key={layer.id} id={`grad-${layer.id}`} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00d2ff" stopOpacity="0.1" />
+              <stop offset="100%" stopColor={layer.color} stopOpacity="0.45" />
+            </linearGradient>
+          ))}
+        </defs>
+        <path d="M 500 500 C 420 500, 320 250, 240 220" stroke="url(#grad-operations)" strokeWidth="1.2" strokeDasharray="4,4" fill="none" opacity="0.7" />
+        <path d="M 500 500 C 400 500, 300 500, 200 500" stroke="url(#grad-recruitment)" strokeWidth="1.2" strokeDasharray="4,4" fill="none" opacity="0.7" />
+        <path d="M 500 500 C 420 500, 320 750, 240 780" stroke="url(#grad-automation)" strokeWidth="1.2" strokeDasharray="4,4" fill="none" opacity="0.7" />
+        <path d="M 500 500 C 580 500, 680 250, 760 220" stroke="url(#grad-security)" strokeWidth="1.2" strokeDasharray="4,4" fill="none" opacity="0.7" />
+        <path d="M 500 500 C 600 500, 700 500, 800 500" stroke="url(#grad-intelligence)" strokeWidth="1.2" strokeDasharray="4,4" fill="none" opacity="0.7" />
+        <path d="M 500 500 C 580 500, 680 750, 760 780" stroke="url(#grad-deployment)" strokeWidth="1.2" strokeDasharray="4,4" fill="none" opacity="0.7" />
+      </svg>
+
       {layers.map((layer, idx) => {
         const isHovered = hoveredLayer === layer.id;
         const isSelected = activeLayer === layer.id;
         const isOnline = layer.health > 0;
+        const isRightSide = layer.position.includes('-r');
 
         return (
           <div
@@ -128,11 +147,24 @@ export function NovaSystemLayers({ omegaOnline, recruitStat, telStat, apiStat, o
               <div className="chip-icon" style={{ color: layer.color }}>
                 <layer.Icon size={12} />
               </div>
-              <span className="chip-title">{layer.title}</span>
-              <span className="chip-dot" style={{ background: isOnline ? '#00e676' : '#ff1744' }} />
-              
-              {/* Mini Sparkline Line */}
-              <div className="chip-pulse-line" style={{ background: layer.color }} />
+              <div className="chip-content">
+                <div className="chip-top-row">
+                  <span className="chip-title">{layer.title}</span>
+                  <span className="chip-dot" style={{ background: isOnline ? '#00e676' : '#ff1744' }} />
+                </div>
+                <div className="chip-bottom-row">
+                  <span className="chip-health-val">{layer.health}%</span>
+                  <svg className="chip-mini-sparkline" width="30" height="8" viewBox="0 0 30 8">
+                    <path
+                      d="M0,4 Q5,2 10,5 T20,2 T30,4"
+                      fill="none"
+                      stroke={layer.color}
+                      strokeWidth="1"
+                      opacity="0.5"
+                    />
+                  </svg>
+                </div>
+              </div>
             </motion.div>
 
             {/* MINI HOVER CARD (Only if not selected) */}
@@ -154,7 +186,7 @@ export function NovaSystemLayers({ omegaOnline, recruitStat, telStat, apiStat, o
             <AnimatePresence>
               {isSelected && (
                 <motion.div
-                  className="tactical-layer-card glass"
+                  className={`tactical-layer-card glass ${isRightSide ? 'tc-right' : 'tc-left'}`}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}

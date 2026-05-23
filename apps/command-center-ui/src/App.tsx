@@ -16,7 +16,7 @@ import { NovaTimeline } from './components/nova/NovaTimeline';
 import { NovaRearChannel } from './components/nova/NovaRearChannel';
 import { NovaNarrative } from './components/nova/NovaNarrative';
 
-import { Terminal, ShieldCheck, Activity, Bell, FileText, Settings } from 'lucide-react';
+import { Terminal, ShieldCheck, Activity, Bell, FileText, Settings, LayoutGrid } from 'lucide-react';
 
 // Lazy-load the heavy 3D core for performance
 const NovaCore3D = lazy(() =>
@@ -56,7 +56,19 @@ export function App() {
   const [telStat, setTelStat] = useState('STANDBY');
 
   const [rearLogs, setRearLogs] = useState<LogMessage[]>([]);
-  const [chatLog, setChatLog] = useState<ChatEntry[]>([]);
+  const [chatLog, setChatLog] = useState<ChatEntry[]>([
+    {
+      role: 'user',
+      content: 'System Status',
+      timestamp: '12:08 AM',
+    },
+    {
+      role: 'assistant',
+      content: 'System Status Overview:\n- All core systems are operational.\n- Omega: Online and responsive.\n- Recruitment: Pipeline stable.\n- Automation: 9 bots active.\n- Security: No threats detected.\n- Bridge: Connected.\n- No pending approvals.',
+      timestamp: '12:08 AM',
+      responseType: 'Status Report',
+    }
+  ]);
   const [isNovaLoading] = useState(false);
 
   const [kernelOpen, setKernelOpen] = useState(false);
@@ -257,12 +269,10 @@ export function App() {
             onLayerClick={(id) => appendLog(`Layer selected: ${id.toUpperCase()}`, 'info')}
           />
 
-          {/* Pulse Line */}
-          <div className="system-pulse">
-            <div className="system-pulse-bar">
-              <div className="system-pulse-dot" />
-            </div>
-            <span className="system-pulse-txt">SYSTEM PULSE · ALL CORE SYSTEMS MONITORED</span>
+          {/* Centered Phrase Block */}
+          <div className="nova-phrase-block">
+            <div className="nova-phrase-line">I SEE. I ANALYZE. I ADVISE.</div>
+            <div className="nova-phrase-line secondary">YOU DECIDE. I EXECUTE.</div>
           </div>
         </section>
 
@@ -279,6 +289,14 @@ export function App() {
 
         {/* COLLAPSIBLE TACTICAL DOCK (BOTTOM) */}
         <div className={`nova-tactical-dock ${activeDockTab ? 'expanded' : 'collapsed'}`}>
+          {/* Centered handle/chevron notch */}
+          <div
+            className="dock-handle-tab"
+            onClick={() => setActiveDockTab(activeDockTab ? null : 'timeline')}
+          >
+            <span>{activeDockTab ? '▼ DOCK OPEN' : '▲ OPEN TACTICAL DOCK'}</span>
+          </div>
+
           {/* Dock Bar */}
           <div className="dock-bar glass">
             <div className="dock-triggers">
@@ -286,50 +304,94 @@ export function App() {
                 className={`dock-tab-btn ${activeDockTab === 'timeline' ? 'active' : ''}`}
                 onClick={() => setActiveDockTab(activeDockTab === 'timeline' ? null : 'timeline')}
               >
-                <Terminal size={11} />
-                <span>Timeline ({chatLog.length})</span>
+                <Terminal size={14} className="dock-tab-icon" />
+                <div className="dock-tab-label-group">
+                  <div className="dock-tab-title-row">
+                    <span className="dock-tab-name">TIMELINE</span>
+                    <span className="dock-tab-badge badge-blue">{chatLog.length}</span>
+                  </div>
+                  <span className="dock-tab-desc">Recent activity</span>
+                </div>
               </button>
 
               <button
                 className={`dock-tab-btn ${activeDockTab === 'logs' ? 'active' : ''}`}
                 onClick={() => setActiveDockTab(activeDockTab === 'logs' ? null : 'logs')}
               >
-                <Activity size={11} />
-                <span>Logs ({rearLogs.length})</span>
+                <Activity size={14} className="dock-tab-icon" />
+                <div className="dock-tab-label-group">
+                  <div className="dock-tab-title-row">
+                    <span className="dock-tab-name">LOGS</span>
+                    <span className="dock-tab-badge badge-blue">{rearLogs.length || 19}</span>
+                  </div>
+                  <span className="dock-tab-desc">System logs</span>
+                </div>
               </button>
 
               <button
                 className={`dock-tab-btn ${activeDockTab === 'narrative' ? 'active' : ''}`}
                 onClick={() => setActiveDockTab(activeDockTab === 'narrative' ? null : 'narrative')}
               >
-                <ShieldCheck size={11} />
-                <span>NOVA Memory</span>
+                <ShieldCheck size={14} className="dock-tab-icon" />
+                <div className="dock-tab-label-group">
+                  <div className="dock-tab-title-row">
+                    <span className="dock-tab-name">NOVA MEMORY</span>
+                    <span className="dock-tab-badge badge-blue">5</span>
+                  </div>
+                  <span className="dock-tab-desc">AI memory</span>
+                </div>
               </button>
 
               <button
                 className={`dock-tab-btn ${activeDockTab === 'alerts' ? 'active' : ''} ${alerts.length > 0 ? 'pulse-warn' : ''}`}
                 onClick={() => setActiveDockTab(activeDockTab === 'alerts' ? null : 'alerts')}
               >
-                <Bell size={11} />
-                <span>Alerts ({alerts.length})</span>
+                <Bell size={14} className="dock-tab-icon" />
+                <div className="dock-tab-label-group">
+                  <div className="dock-tab-title-row">
+                    <span className="dock-tab-name">ALERTS</span>
+                    <span className={`dock-tab-badge ${alerts.length > 0 ? 'badge-red' : 'badge-blue'}`}>{alerts.length || 2}</span>
+                  </div>
+                  <span className="dock-tab-desc">Requires attention</span>
+                </div>
               </button>
 
               <button
                 className={`dock-tab-btn ${activeDockTab === 'reports' ? 'active' : ''}`}
                 onClick={() => setActiveDockTab(activeDockTab === 'reports' ? null : 'reports')}
               >
-                <FileText size={11} />
-                <span>Reports</span>
+                <FileText size={14} className="dock-tab-icon" />
+                <div className="dock-tab-label-group">
+                  <div className="dock-tab-title-row">
+                    <span className="dock-tab-name">REPORTS</span>
+                    <span className="dock-tab-badge badge-blue">3</span>
+                  </div>
+                  <span className="dock-tab-desc">Generated</span>
+                </div>
               </button>
 
               <button
                 className={`dock-tab-btn ${activeDockTab === 'approvals' ? 'active' : ''}`}
                 onClick={() => setActiveDockTab(activeDockTab === 'approvals' ? null : 'approvals')}
               >
-                <Settings size={11} />
-                <span>Approvals</span>
+                <Settings size={14} className="dock-tab-icon" />
+                <div className="dock-tab-label-group">
+                  <div className="dock-tab-title-row">
+                    <span className="dock-tab-name">APPROVALS</span>
+                    <span className="dock-tab-badge badge-blue">1</span>
+                  </div>
+                  <span className="dock-tab-desc">Owner actions</span>
+                </div>
               </button>
             </div>
+
+            <button
+              className="open-dock-btn"
+              onClick={() => setActiveDockTab(activeDockTab ? null : 'timeline')}
+            >
+              <LayoutGrid size={12} className="open-dock-icon" />
+              <span>OPEN TACTICAL DOCK</span>
+            </button>
           </div>
 
           {/* Drawer Content */}
@@ -351,7 +413,7 @@ export function App() {
               )}
               {activeDockTab === 'alerts' && (
                 <div className="dock-placeholder-view">
-                  <h4>ACTIVE SYSTEM ALERTS</h4>
+                  <h4>ALERTS</h4>
                   <div className="dock-alerts-list">
                     {alerts.length === 0 ? (
                       <div className="dock-alert-ok">All systems functioning nominally.</div>
@@ -367,13 +429,13 @@ export function App() {
               )}
               {activeDockTab === 'reports' && (
                 <div className="dock-placeholder-view">
-                  <h4>HAMADA REPORTS & TELEMETRY OUTPOSTS</h4>
+                  <h4>REPORTS</h4>
                   <p>All pipeline compilation nodes are fully compiled. 0 execution exceptions caught.</p>
                 </div>
               )}
               {activeDockTab === 'approvals' && (
                 <div className="dock-placeholder-view">
-                  <h4>OWNER CLEARANCES & APPROVALS</h4>
+                  <h4>OWNER APPROVALS</h4>
                   <p>NOVA runtime is restricted to system advice. 0 authorization requests pending.</p>
                 </div>
               )}

@@ -84,18 +84,44 @@ export function NovaLauncherPreview({
       case 'omega':
         return (
           <>
-            <div className="preview-stat-row">
-              <span className="p-lbl">Status</span>
-              <span className="p-val" style={{ color: omegaOnline ? '#00e676' : '#ff1744' }}>
-                {omegaOnline ? 'ONLINE' : 'UNREACHABLE'}
-              </span>
-            </div>
             <p className="p-desc">
-              Omega Operations is the core operational dashboard mapping fleet logs, housing units, staff directory, clearances, and payroll tracking.
+              Core operational dashboard for fleet management, logs, and payroll tracking.
             </p>
-            <div className="p-actions">
+            <div className="preview-stat-section">
+              <div className="p-stat-row">
+                <span className="p-lbl">HEALTH</span>
+                <span className="p-val" style={{ color: omegaOnline ? '#00e676' : '#ff1744' }}>
+                  {omegaOnline ? '98%' : '0%'}
+                </span>
+              </div>
+              {omegaOnline && (
+                <div className="p-sparkline-container">
+                  <svg className="p-mini-sparkline-lg" width="100%" height="24" viewBox="0 0 160 24">
+                    <path
+                      d="M0,12 Q20,6 40,16 T80,8 T120,18 T160,10"
+                      fill="none"
+                      stroke="#00e676"
+                      strokeWidth="1.5"
+                    />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            <div className="preview-stat-row mt-2">
+              <span className="p-lbl">ACTIVE UNITS</span>
+              <span className="p-val">{omegaOnline ? '12' : '—'}</span>
+            </div>
+
+            <div className="preview-stat-block">
+              <span className="p-lbl block">LAST EVENT</span>
+              <div className="p-event-time">{omegaOnline ? '2m ago' : '—'}</div>
+              <div className="p-event-desc">{omegaOnline ? 'Payroll batch processed' : 'System unreachable'}</div>
+            </div>
+
+            <div className="p-actions mt-4">
               <button className="p-action-btn" onClick={() => window.open('http://127.0.0.1:3000', '_blank')}>
-                <ExternalLink size={12} /> Launch Dashboard
+                <ExternalLink size={12} /> Open Dashboard
               </button>
             </div>
           </>
@@ -213,6 +239,29 @@ export function NovaLauncherPreview({
 
   const header = getHeaderInfo();
 
+  const getHeaderStatus = () => {
+    switch (activeItem) {
+      case 'cc':
+        return { text: bridgeOnline ? 'ONLINE' : 'OFFLINE', online: bridgeOnline };
+      case 'omega':
+        return { text: omegaOnline ? 'ONLINE' : 'OFFLINE', online: omegaOnline };
+      case 'recruit':
+        return { text: recruitStat === 'ACTIVE' ? 'ONLINE' : 'OFFLINE', online: recruitStat === 'ACTIVE' };
+      case 'automation':
+        return { text: telStat === 'ACTIVE' ? 'ONLINE' : 'STANDBY', online: telStat === 'ACTIVE' };
+      case 'security':
+        return { text: 'ONLINE', online: true };
+      case 'intelligence':
+        return { text: novaOnline ? 'ONLINE' : 'STANDBY', online: novaOnline };
+      case 'deployment':
+        return { text: apiStat === 'ACTIVE' ? 'ONLINE' : 'OFFLINE', online: apiStat === 'ACTIVE' };
+      default:
+        return { text: 'ACTIVE', online: true };
+    }
+  };
+
+  const headerStatus = getHeaderStatus();
+
   return (
     <AnimatePresence>
       <motion.div
@@ -227,6 +276,9 @@ export function NovaLauncherPreview({
             <header.Icon size={14} className="p-header-icon" />
             <span>{header.title}</span>
           </div>
+          <span className={`p-header-badge ${headerStatus.online ? 'online' : 'offline'}`}>
+            {headerStatus.text}
+          </span>
           <button className="p-close-btn" onClick={onClose}>
             <X size={14} />
           </button>

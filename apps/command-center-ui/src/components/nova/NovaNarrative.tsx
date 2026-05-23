@@ -26,7 +26,7 @@ export function NovaNarrative({ omegaOnline, novaOnline, bridgeOnline, novaProvi
 
   return (
     <div className="nova-narrative-panel">
-      <div className="nn-title">NOVA NARRATIVE</div>
+      <div className="nn-title">NOVA MEMORY</div>
       <div className="nn-lines">
         <AnimatePresence mode="popLayout">
           {lines.map((line, i) => (

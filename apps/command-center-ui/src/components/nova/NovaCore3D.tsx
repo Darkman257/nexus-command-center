@@ -33,7 +33,7 @@ function PlasmaSphere({ online }: Props) {
     <>
       {/* Inner crystal core */}
       <mesh ref={innerRef}>
-        <icosahedronGeometry args={[0.55, 2]} />
+        <icosahedronGeometry args={[0.27, 2]} />
         <meshStandardMaterial
           color={coreColor}
           emissive={coreColor}
@@ -45,33 +45,25 @@ function PlasmaSphere({ online }: Props) {
       </mesh>
 
       {/* Plasma outer shell */}
-      <Sphere ref={meshRef} args={[1, 64, 64]}>
+      <Sphere ref={meshRef} args={[0.5, 64, 64]}>
         <MeshDistortMaterial
           color={glowColor}
           emissive={coreColor}
           emissiveIntensity={0.5}
-          distort={0.25}
-          speed={1.0}
+          distort={0.16}
+          speed={0.6}
           roughness={0.1}
           metalness={0.2}
           transparent
-          opacity={0.45}
+          opacity={0.3}
         />
       </Sphere>
 
-      {/* Outer halo ring */}
-      <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[1.45, 0.012, 8, 80]} />
-        <meshStandardMaterial color={coreColor} emissive={coreColor} emissiveIntensity={2} />
-      </mesh>
-      <mesh rotation={[Math.PI / 3, 0.5, 0]}>
-        <torusGeometry args={[1.6, 0.006, 8, 80]} />
-        <meshStandardMaterial color={glowColor} emissive={glowColor} emissiveIntensity={1.2} transparent opacity={0.4}/>
-      </mesh>
+      {/* Outer halo rings completely removed as requested */}
 
       {/* Core point light */}
-      <pointLight color={coreColor} intensity={online ? 5 : 2} distance={8} />
-      <pointLight color={glowColor} intensity={2} distance={6} position={[1, 1, 1]} />
+      <pointLight color={coreColor} intensity={online ? 2.5 : 1.2} distance={4} />
+      <pointLight color={glowColor} intensity={1.0} distance={3} position={[1, 1, 1]} />
     </>
   );
 }
@@ -92,8 +84,8 @@ export const NovaCore3D = memo(function NovaCore3D({ online }: Props) {
 
           <EffectComposer>
             <Bloom
-              intensity={1.2}
-              luminanceThreshold={0.2}
+              intensity={0.8}
+              luminanceThreshold={0.3}
               luminanceSmoothing={0.9}
               mipmapBlur
             />

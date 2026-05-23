@@ -21,7 +21,7 @@ export function NovaRearChannel({ logs, onClear }: Props) {
   return (
     <div className="rear-channel-panel">
       <div className="rc-header">
-        <span className="rc-title">REAR-CHANNEL INTELLIGENCE</span>
+        <span className="rc-title">LOGS</span>
         <button className="rc-clear-btn" onClick={onClear}>[ CLEAR ]</button>
       </div>
       <div className="rc-log-area">
