@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import { checkOmegaStatus } from '../../../packages/connectors/src/omegaConnector';
 import type { SystemStatus } from '../../../packages/shared-types/src/systemStatus';
@@ -6,22 +6,22 @@ import { KernelLibrary } from './kernel/KernelLibrary';
 import { NexusBrainWorkspace } from './brain/NexusBrainWorkspace';
 
 import { StarfieldBackground } from './components/nova/StarfieldBackground';
-import { NovaTopBar } from './components/nova/NovaTopBar';
 import { NovaLauncherRail } from './components/nova/NovaLauncherRail';
-import { NovaLauncherPreview } from './components/nova/NovaLauncherPreview';
-import { NovaSystemLayers } from './components/nova/NovaSystemLayers';
-import { NovaAssistantPanel } from './components/nova/NovaAssistantPanel';
-import type { ChatEntry } from './components/nova/NovaAssistantPanel';
-import { NovaTimeline } from './components/nova/NovaTimeline';
-import { NovaRearChannel } from './components/nova/NovaRearChannel';
-import { NovaNarrative } from './components/nova/NovaNarrative';
 
-import { Terminal, ShieldCheck, Activity, Bell, FileText, Settings, LayoutGrid } from 'lucide-react';
-
-// Lazy-load the heavy 3D core for performance
-const NovaCore3D = lazy(() =>
-  import('./components/nova/NovaCore3D').then(m => ({ default: m.NovaCore3D }))
-);
+// Bridge imports
+import './runtime/adapters/omegaRuntimeBridge';
+import { SituationRoom } from './pages/SituationRoom';
+import { Workspaces } from './pages/Workspaces';
+import { NovaPage } from './pages/NovaPage';
+import { Intelligence } from './pages/Intelligence';
+import { Reports } from './pages/Reports';
+import { Automations } from './pages/Automations';
+import { NexusCore } from './pages/NexusCore';
+import { Settings as SettingsPage } from './pages/Settings';
+import { RuntimeServicesPanel } from './pages/RuntimeServicesPanel';
+import { NovaFloatingAssistant } from './components/nova/NovaFloatingAssistant';
+import { mockRuntimeFeed } from './runtime/mock/mockRuntimeFeed';
+import './runtime/testing/runtimeTestHarness';
 
 interface LogMessage {
   time: string;
@@ -30,10 +30,6 @@ interface LogMessage {
 }
 
 export function App() {
-  const [currentTime, setCurrentTime] = useState('');
-  const [currentDate, setCurrentDate] = useState('');
-  const [isRefreshing, setIsRefreshing] = useState(false);
-
   const [omegaStatus, setOmegaStatus] = useState<SystemStatus>({
     systemId: 'omega-ops',
     label: 'Omega Ops',
@@ -45,18 +41,13 @@ export function App() {
   const [novaStatus, setNovaStatus] = useState({ online: false, selectedProvider: 'offline' });
   const [bridgeOnline, setBridgeOnline] = useState(false);
   const [telegramError, setTelegramError] = useState<string | null>(null);
-
-  const [cpuUsage, setCpuUsage] = useState(28.7);
-  const [ramLoad, setRamLoad] = useState(42.9);
-  const [diskUsage] = useState(62.4);
-  const [netUsage, setNetUsage] = useState(18.2);
+  const [operationalIntelligence, setOperationalIntelligence] = useState<any>(null);
 
   const [recruitStat, setRecruitStat] = useState('STANDBY');
   const [apiStat, setApiStat] = useState('OFFLINE');
   const [telStat, setTelStat] = useState('STANDBY');
 
-  const [rearLogs, setRearLogs] = useState<LogMessage[]>([]);
-  const [chatLog, setChatLog] = useState<ChatEntry[]>([
+  const [chatLog, setChatLog] = useState<any[]>([
     {
       role: 'user',
       content: 'System Status',
@@ -69,23 +60,26 @@ export function App() {
       responseType: 'Status Report',
     }
   ]);
-  const [isNovaLoading] = useState(false);
 
   const [kernelOpen, setKernelOpen] = useState(false);
   const [brainOpen, setBrainOpen] = useState(false);
 
   // New UI/UX Layout States
   const [activeLauncherItem, setActiveLauncherItem] = useState<string | null>(null);
-  const [activeDockTab, setActiveDockTab] = useState<string | null>(null);
+
+  // Ask NOVA bridge — called from SystemGraph3D
+  const navigateToNova = (prompt: string) => {
+    try { sessionStorage.setItem('nexus_nova_pending_prompt', prompt); } catch {}
+    setActiveLauncherItem('nova');
+  };
 
   const appendLog = (msg: string, type: LogMessage['type'] = 'info') => {
-    const time = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    setRearLogs(prev => [{ time, msg, type }, ...prev].slice(0, 60));
+    console.log(`[SYSTEM LOG - ${type.toUpperCase()}] ${msg}`);
   };
 
   const callBridgeAPI = async (endpoint: string, method = 'GET', body?: unknown) => {
     try {
-      const res = await fetch(`http://localhost:9999/api/${endpoint}`, {
+      const res = await fetch(`http://localhost:5057/api/${endpoint}`, {
         method,
         headers: body ? { 'Content-Type': 'application/json' } : undefined,
         body: body ? JSON.stringify(body) : undefined,
@@ -102,8 +96,6 @@ export function App() {
   };
 
   const fetchOmegaHealth = async () => {
-    setIsRefreshing(true);
-
     // Omega health
     const result = await checkOmegaStatus();
     setOmegaStatus(result);
@@ -130,8 +122,12 @@ export function App() {
     if (bridgeUp) {
       appendLog('Telemetry Poll: Bridge OK', 'system');
 
-      const ramRes = await callBridgeAPI('sys');
-      if (ramRes && !isNaN(parseFloat(ramRes))) setRamLoad(parseFloat(parseFloat(ramRes).toFixed(1)));
+      const opIntel = await callBridgeAPI('analytics/operational-intelligence');
+      if (opIntel && opIntel.ok) {
+        setOperationalIntelligence(opIntel.analytics);
+      } else {
+        setOperationalIntelligence(null);
+      }
 
       const recruitStatus = await callBridgeAPI('recruit-status');
       setRecruitStat(recruitStatus?.isRunning ? 'ACTIVE' : 'OFFLINE');
@@ -162,20 +158,18 @@ export function App() {
     }
 
     appendLog(`Omega: ${result.status.toUpperCase()} ${result.responseMs != null ? `(${result.responseMs}ms)` : '(unreachable)'}`, result.status === 'online' ? 'info' : 'alert');
-    setIsRefreshing(false);
   };
 
-  // Clock
+  // Clock & Runtime Feed Loop
   useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      setCurrentTime(now.toLocaleTimeString([], { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      setCurrentDate(now.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase());
-    };
-    tick();
-    const id = setInterval(tick, 1000);
     fetchOmegaHealth();
-    return () => clearInterval(id);
+    
+    // Start local operational event nervous system feed
+    mockRuntimeFeed.start(6000);
+    
+    return () => {
+      mockRuntimeFeed.stop();
+    };
   }, []);
 
   // 15s telemetry poll
@@ -184,24 +178,11 @@ export function App() {
     return () => clearInterval(id);
   }, []);
 
-  // CPU/NET flutter
+  // Hidden route for technical control
   useEffect(() => {
-    const id = setInterval(() => {
-      setCpuUsage(p => Math.max(10, Math.min(90, parseFloat((p + (Math.random() - 0.5) * 4).toFixed(1)))));
-      setNetUsage(p => Math.max(5,  Math.min(60, parseFloat((p + (Math.random() - 0.5) * 2).toFixed(1)))));
-    }, 3000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Escape key handler to close dock
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setActiveDockTab(null);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    if (window.location.pathname === '/runtime-services') {
+      setActiveLauncherItem('runtime-services');
+    }
   }, []);
 
   // Build alerts list
@@ -215,258 +196,62 @@ export function App() {
       <StarfieldBackground />
 
       <div className="nova-deck">
-        {/* TOP BAR */}
-        <NovaTopBar
-          currentTime={currentTime}
-          currentDate={currentDate}
-          omegaStatus={omegaStatus}
-          novaOnline={novaStatus.online}
-          novaProvider={novaStatus.selectedProvider}
-          isRefreshing={isRefreshing}
-          onRefresh={fetchOmegaHealth}
-          bridgeOnline={bridgeOnline}
-        />
-
-        {/* LEFT — Compact Launcher Rail */}
+        {/* LEFT — Labeled Operational Sidebar */}
         <NovaLauncherRail
           activeItem={activeLauncherItem}
           setActiveItem={setActiveLauncherItem}
           omegaOnline={omegaStatus.status === 'online'}
           recruitStat={recruitStat}
           telStat={telStat}
-          apiStat={apiStat}
           novaOnline={novaStatus.online}
           bridgeOnline={bridgeOnline}
         />
 
-        {/* Launcher Preview HUD overlay */}
-        <NovaLauncherPreview
-          activeItem={activeLauncherItem}
-          onClose={() => setActiveLauncherItem(null)}
-          omegaOnline={omegaStatus.status === 'online'}
-          recruitStat={recruitStat}
-          telStat={telStat}
-          apiStat={apiStat}
-          novaOnline={novaStatus.online}
-          bridgeOnline={bridgeOnline}
-          cpuUsage={cpuUsage}
-          ramLoad={ramLoad}
-          diskUsage={diskUsage}
-          netUsage={netUsage}
-          alerts={alerts}
-        />
+        {/* Dynamic system energy circulating vein */}
+        <div className="energy-vein-v" style={{ height: '100vh', opacity: 0.4 }} />
 
-        {/* CENTER — NOVA 3D Core + Minimized Chips */}
-        <section className="nova-center-core">
-          {/* 3D Canvas Host */}
-          <div className="nova-3d-host">
-            <Suspense fallback={null}>
-              <NovaCore3D online={novaStatus.online} />
-            </Suspense>
-          </div>
-
-          {/* NOVA Title */}
-          <div className="nova-center-title">
-            <div className="nova-center-h1">NOVA</div>
-            <div className="nova-center-h3">STRATEGIC AI COMMAND ENGINE</div>
-          </div>
-
-          {/* 6 Minimized chips around core */}
-          <NovaSystemLayers
-            omegaOnline={omegaStatus.status === 'online'}
-            recruitStat={recruitStat}
-            telStat={telStat}
-            apiStat={apiStat}
-            onLayerClick={(id) => appendLog(`Layer selected: ${id.toUpperCase()}`, 'info')}
-          />
-
-          {/* Centered Phrase Block */}
-          <div className="nova-phrase-block">
-            <div className="nova-phrase-line">I SEE. I ANALYZE. I ADVISE.</div>
-            <div className="nova-phrase-line secondary">YOU DECIDE. I EXECUTE.</div>
-          </div>
-        </section>
-
-        {/* RIGHT — NOVA Assistant */}
-        <NovaAssistantPanel
-          novaOnline={novaStatus.online}
-          novaProvider={novaStatus.selectedProvider}
-          omegaStatus={omegaStatus}
-          bridgeOnline={bridgeOnline}
-          onOpenWorkspace={() => setBrainOpen(true)}
-          chatLog={chatLog}
-          setChatLog={setChatLog}
-        />
-
-        {/* COLLAPSIBLE TACTICAL DOCK (BOTTOM) */}
-        <div className="tactical-dock-shell">
-          {activeDockTab && (
-            <div className="tactical-dock-drawer glass">
-              <div className="dock-drawer-header">
-                <div className="dock-drawer-title">
-                  {activeDockTab === 'timeline' && 'TIMELINE'}
-                  {activeDockTab === 'logs' && 'LOGS'}
-                  {activeDockTab === 'narrative' && 'NOVA MEMORY'}
-                  {activeDockTab === 'alerts' && 'ALERTS'}
-                  {activeDockTab === 'reports' && 'REPORTS'}
-                  {activeDockTab === 'approvals' && 'OWNER APPROVALS'}
-                </div>
-                <button className="dock-drawer-close-btn" onClick={() => setActiveDockTab(null)}>
-                  MINIMIZE DOCK
-                </button>
-              </div>
-              <div className="dock-drawer-body">
-                {activeDockTab === 'timeline' && (
-                  chatLog.length === 0 ? (
-                    <div className="dock-empty-state">No entries yet.</div>
-                  ) : (
-                    <NovaTimeline entries={chatLog} isLoading={isNovaLoading} />
-                  )
-                )}
-                {activeDockTab === 'logs' && (
-                  rearLogs.length === 0 ? (
-                    <div className="dock-empty-state">No entries yet.</div>
-                  ) : (
-                    <NovaRearChannel logs={rearLogs} onClear={() => setRearLogs([])} />
-                  )
-                )}
-                {activeDockTab === 'narrative' && (
-                  <NovaNarrative
-                    omegaOnline={omegaStatus.status === 'online'}
-                    novaOnline={novaStatus.online}
-                    bridgeOnline={bridgeOnline}
-                    novaProvider={novaStatus.selectedProvider}
-                  />
-                )}
-                {activeDockTab === 'alerts' && (
-                  <div className="dock-placeholder-view">
-                    <div className="dock-alerts-list">
-                      {alerts.length === 0 ? (
-                        <div className="dock-alert-ok">All systems functioning nominally.</div>
-                      ) : (
-                        alerts.map((a, idx) => (
-                          <div key={idx} className={`dock-alert-item alert-${a.type}`}>
-                            <span>● {a.msg}</span>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
-                {activeDockTab === 'reports' && (
-                  <div className="dock-placeholder-view">
-                    <p>All pipeline compilation nodes are fully compiled. 0 execution exceptions caught.</p>
-                  </div>
-                )}
-                {activeDockTab === 'approvals' && (
-                  <div className="dock-placeholder-view">
-                    <p>NOVA runtime is restricted to system advice. 0 authorization requests pending.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Dock Bar */}
-          <div className="tactical-dock-bar glass">
-            <div className="dock-triggers">
-              <button
-                className={`dock-tab-btn ${activeDockTab === 'timeline' ? 'active' : ''}`}
-                onClick={() => setActiveDockTab(activeDockTab === 'timeline' ? null : 'timeline')}
-              >
-                <Terminal size={14} className="dock-tab-icon" />
-                <div className="dock-tab-label-group">
-                  <div className="dock-tab-title-row">
-                    <span className="dock-tab-name">TIMELINE</span>
-                    <span className="dock-tab-badge badge-blue">{chatLog.length}</span>
-                  </div>
-                  <span className="dock-tab-desc">Recent activity</span>
-                </div>
-              </button>
-
-              <button
-                className={`dock-tab-btn ${activeDockTab === 'logs' ? 'active' : ''}`}
-                onClick={() => setActiveDockTab(activeDockTab === 'logs' ? null : 'logs')}
-              >
-                <Activity size={14} className="dock-tab-icon" />
-                <div className="dock-tab-label-group">
-                  <div className="dock-tab-title-row">
-                    <span className="dock-tab-name">LOGS</span>
-                    <span className="dock-tab-badge badge-blue">{rearLogs.length || 19}</span>
-                  </div>
-                  <span className="dock-tab-desc">System logs</span>
-                </div>
-              </button>
-
-              <button
-                className={`dock-tab-btn ${activeDockTab === 'narrative' ? 'active' : ''}`}
-                onClick={() => setActiveDockTab(activeDockTab === 'narrative' ? null : 'narrative')}
-              >
-                <ShieldCheck size={14} className="dock-tab-icon" />
-                <div className="dock-tab-label-group">
-                  <div className="dock-tab-title-row">
-                    <span className="dock-tab-name">NOVA MEMORY</span>
-                    <span className="dock-tab-badge badge-blue">5</span>
-                  </div>
-                  <span className="dock-tab-desc">AI memory</span>
-                </div>
-              </button>
-
-              <button
-                className={`dock-tab-btn ${activeDockTab === 'alerts' ? 'active' : ''} ${alerts.length > 0 ? 'pulse-warn' : ''}`}
-                onClick={() => setActiveDockTab(activeDockTab === 'alerts' ? null : 'alerts')}
-              >
-                <Bell size={14} className="dock-tab-icon" />
-                <div className="dock-tab-label-group">
-                  <div className="dock-tab-title-row">
-                    <span className="dock-tab-name">ALERTS</span>
-                    <span className={`dock-tab-badge ${alerts.length > 0 ? 'badge-red' : 'badge-blue'}`}>{alerts.length || 2}</span>
-                  </div>
-                  <span className="dock-tab-desc">Requires attention</span>
-                </div>
-              </button>
-
-              <button
-                className={`dock-tab-btn ${activeDockTab === 'reports' ? 'active' : ''}`}
-                onClick={() => setActiveDockTab(activeDockTab === 'reports' ? null : 'reports')}
-              >
-                <FileText size={14} className="dock-tab-icon" />
-                <div className="dock-tab-label-group">
-                  <div className="dock-tab-title-row">
-                    <span className="dock-tab-name">REPORTS</span>
-                    <span className="dock-tab-badge badge-blue">3</span>
-                  </div>
-                  <span className="dock-tab-desc">Generated</span>
-                </div>
-              </button>
-
-              <button
-                className={`dock-tab-btn ${activeDockTab === 'approvals' ? 'active' : ''}`}
-                onClick={() => setActiveDockTab(activeDockTab === 'approvals' ? null : 'approvals')}
-              >
-                <Settings size={14} className="dock-tab-icon" />
-                <div className="dock-tab-label-group">
-                  <div className="dock-tab-title-row">
-                    <span className="dock-tab-name">APPROVALS</span>
-                    <span className="dock-tab-badge badge-blue">1</span>
-                  </div>
-                  <span className="dock-tab-desc">Owner actions</span>
-                </div>
-              </button>
-            </div>
-
-            <button
-              className="open-dock-btn"
-              onClick={() => setActiveDockTab(activeDockTab ? null : 'timeline')}
-            >
-              <LayoutGrid size={12} className="open-dock-icon" />
-              <span>{activeDockTab ? 'MINIMIZE DOCK' : 'OPEN TACTICAL DOCK'}</span>
-            </button>
+        {/* RIGHT — Active Full-Page Content Router */}
+        <div className="nexus-main-content">
+          <div className="hologram-transition" key={activeLauncherItem || 'cc'} style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            {(() => {
+              switch (activeLauncherItem) {
+                case 'workspaces':     return <Workspaces />;
+                case 'nova':           return <NovaPage />;
+                case 'intelligence':   return <Intelligence />;
+                case 'reports':        return <Reports />;
+                case 'automations':    return <Automations />;
+                case 'nexus-core':     return <NexusCore onAskNova={navigateToNova} />;
+                case 'settings':       return <SettingsPage />;
+                case 'runtime-services': return <RuntimeServicesPanel />;
+                case 'cc':
+                default:
+                  return (
+                    <SituationRoom
+                      novaStatus={novaStatus}
+                      omegaStatus={omegaStatus}
+                      bridgeOnline={bridgeOnline}
+                      recruitStat={recruitStat}
+                      telStat={telStat}
+                      apiStat={apiStat}
+                      chatLog={chatLog}
+                      setChatLog={setChatLog}
+                      appendLog={appendLog}
+                      setBrainOpen={setBrainOpen}
+                      operationalIntelligence={operationalIntelligence}
+                    />
+                  );
+              }
+            })()}
           </div>
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Global Collapsible Floating NOVA Assistant Overlay */}
+      <NovaFloatingAssistant
+        activeLauncherItem={activeLauncherItem}
+        chatLog={chatLog}
+        setChatLog={setChatLog}
+      />
       {brainOpen && <NexusBrainWorkspace onClose={() => setBrainOpen(false)} />}
       {kernelOpen && <KernelLibrary onClose={() => setKernelOpen(false)} />}
     </>
