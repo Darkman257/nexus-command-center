@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, lazy, Suspense } from 'react';
 import { Cpu, Network, Brain, Database, Server } from 'lucide-react';
 import { RuntimeMemory } from './RuntimeMemory';
 import { DataIntake } from './DataIntake';
 import { RuntimeServicesPanel } from './RuntimeServicesPanel';
-import SystemGraph3D from './SystemGraph3D';
 import { OperationalGraph } from './OperationalGraph';
+
+const SystemGraph3D = lazy(() => import('./SystemGraph3D'));
 
 // ─── Tab definitions ──────────────────────────────────────────────────────────
 
@@ -147,10 +148,28 @@ export function NexusCore({ onAskNova }: { onAskNova?: (prompt: string) => void 
             <OverviewTab />
           </div>
         )}
-        {activeTab === 'graph' && <SystemGraph3D onAskNova={(prompt) => {
-          try { sessionStorage.setItem('nexus_nova_pending_prompt', prompt); } catch {}
-          onAskNova?.(prompt);
-        }} />}
+        {activeTab === 'graph' && (
+          <Suspense fallback={
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              fontFamily: 'monospace',
+              fontSize: 12,
+              color: '#00d2ff',
+              letterSpacing: 1,
+              background: '#0a0a0a'
+            }}>
+              INITIALIZING 3D HOLOGRAM MATRIX...
+            </div>
+          }>
+            <SystemGraph3D onAskNova={(prompt) => {
+              try { sessionStorage.setItem('nexus_nova_pending_prompt', prompt); } catch {}
+              onAskNova?.(prompt);
+            }} />
+          </Suspense>
+        )}
         {activeTab === 'memory' && (
           <div style={{ flex: 1, overflowY: 'auto' }}>
             <RuntimeMemory />
