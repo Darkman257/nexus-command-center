@@ -1,0 +1,9 @@
+{
+  "candidatesSummary": "5 active candidates, 2 pending review.",
+  "roles": ["Frontend Engineer", "AI Specialist", "Operations Manager"],
+  "calls": ["Call with Candidate A", "Call with Candidate B"],
+  "interviews": ["Technical Interview for AI Specialist"],
+  "hiringPipeline": ["Sourced", "Screened", "Interviewed", "Offered"],
+  "sources": ["LinkedIn", "Referrals"],
+  "followups": ["Follow up with Candidate A on offer"]
+}

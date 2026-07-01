@@ -1,0 +1,32 @@
+[
+  {
+    "id": "nexus-command-center",
+    "name": "NEXUS Command Center",
+    "path": "D:\\NEXUS\\PROJECTS\\nexus-command-center",
+    "branch": "main",
+    "role": "Central UI and backend orchestrator",
+    "lastKnownStatus": "stable",
+    "buildCommand": "pnpm build",
+    "devCommand": "pnpm dev"
+  },
+  {
+    "id": "omega-ops-dashboard",
+    "name": "Omega Ops Dashboard",
+    "path": "D:\\NEXUS\\PROJECTS\\omega-ops-dashboard",
+    "branch": "main",
+    "role": "Operational frontend application",
+    "lastKnownStatus": "active",
+    "buildCommand": "pnpm build",
+    "devCommand": "pnpm dev"
+  },
+  {
+    "id": "recruitment-hub",
+    "name": "Recruitment Hub",
+    "path": "D:\\NEXUS\\PROJECTS\\recruitment-hub",
+    "branch": "main",
+    "role": "HR parsing application",
+    "lastKnownStatus": "active",
+    "buildCommand": "pnpm build",
+    "devCommand": "pnpm dev"
+  }
+]

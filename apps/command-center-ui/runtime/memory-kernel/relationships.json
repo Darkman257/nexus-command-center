@@ -1,0 +1,9 @@
+[
+  { "from": "sys_nexus", "to": "sys_omega", "relation": "launches and monitors", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" },
+  { "from": "sys_nexus", "to": "sys_recruit", "relation": "launches and monitors", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" },
+  { "from": "p_nova", "to": "sys_nexus", "relation": "integrated AI assistant for", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" },
+  { "from": "p_moh", "to": "p_nova", "relation": "creator / manager", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" },
+  { "from": "p_hamada", "to": "sys_nexus", "relation": "developer / engineer", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" },
+  { "from": "proj_nexus", "to": "proj_omega", "relation": "contains", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" },
+  { "from": "proj_nexus", "to": "proj_recruit", "relation": "contains", "confidence": 1.0, "source": "system", "createdAt": "2026-05-31T00:00:00Z" }
+]

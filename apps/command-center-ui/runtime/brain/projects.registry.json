@@ -1,0 +1,74 @@
+[
+  {
+    "id": "nexus-command-center",
+    "name": "NEXUS Command Center",
+    "type": "dashboard",
+    "path": "D:\\NEXUS\\PROJECTS\\nexus-command-center",
+    "url": "http://localhost:5173",
+    "port": 5173,
+    "statusEndpoint": "http://localhost:5173/api/services/status",
+    "repoPath": "D:\\NEXUS\\PROJECTS\\nexus-command-center",
+    "description": "Central AI-driven control panel and interface for Moh",
+    "capabilities": ["nova-chat", "runtime-status", "service-launch"]
+  },
+  {
+    "id": "recruitment-hub",
+    "name": "Recruitment Hub",
+    "type": "dashboard",
+    "path": "D:\\NEXUS\\PROJECTS\\recruitment-hub",
+    "url": "http://localhost:5174",
+    "port": 5174,
+    "statusEndpoint": "http://localhost:5174",
+    "repoPath": "D:\\NEXUS\\PROJECTS\\recruitment-hub",
+    "description": "AI-driven recruitment parsing and ATS system",
+    "capabilities": ["cv-parsing", "pipeline-management"]
+  },
+  {
+    "id": "omega-ops-dashboard",
+    "name": "Omega Ops Dashboard",
+    "type": "dashboard",
+    "path": "D:\\NEXUS\\PROJECTS\\omega-ops-dashboard",
+    "url": "http://localhost:3000",
+    "port": 3000,
+    "statusEndpoint": "http://localhost:3000",
+    "repoPath": "D:\\NEXUS\\PROJECTS\\omega-ops-dashboard",
+    "description": "Operations management system",
+    "capabilities": ["fleet-tracking", "payroll-management"]
+  },
+  {
+    "id": "omega-gateway",
+    "name": "Omega Gateway",
+    "type": "backend",
+    "path": "D:\\NEXUS\\PROJECTS\\.nexus-launcher",
+    "url": "http://localhost:5000",
+    "port": 5000,
+    "statusEndpoint": "http://localhost:5000/api/health",
+    "repoPath": "N/A",
+    "description": "Main API gateway for Omega Services",
+    "capabilities": ["auth", "routing"]
+  },
+  {
+    "id": "omega-local-bridge",
+    "name": "Omega Local Bridge",
+    "type": "backend",
+    "path": "D:\\NEXUS\\PROJECTS\\.nexus-launcher",
+    "url": "http://localhost:5057",
+    "port": 5057,
+    "statusEndpoint": "http://localhost:5057/health",
+    "repoPath": "N/A",
+    "description": "Local bridging service for syncing assets",
+    "capabilities": ["file-sync", "local-proxy"]
+  },
+  {
+    "id": "powershield-coming-soon",
+    "name": "PowerShield",
+    "type": "security",
+    "path": "N/A",
+    "url": "N/A",
+    "port": 0,
+    "statusEndpoint": "N/A",
+    "repoPath": "N/A",
+    "description": "Advanced local security proxy",
+    "capabilities": ["leak-prevention"]
+  }
+]

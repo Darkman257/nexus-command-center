@@ -1,0 +1,7 @@
+timestamp,employee_id,workspace,status,check_in_time
+2026-05-27,EMP-203,omega,present,08:30:00
+2026-05-27,EMP-203,omega,present,08:30:00
+2026-05-27,EMP-204,omega,present,08:45:00
+,EMP-205,omega,absent,
+,,,,,
+2026-05-27,EMP-206,omega,present,09:15:00

@@ -1,0 +1,20 @@
+[
+  { "id": "p_moh", "type": "person", "name": "Moh Khairy", "role": "Project Owner / Creator" },
+  { "id": "p_hamada", "type": "person", "name": "Hamada", "role": "Senior Production Engineer (AI Agent)" },
+  { "id": "p_nova", "type": "person", "name": "NOVA", "role": "Nexus AI Assistant" },
+  { "id": "sys_nexus", "type": "system", "name": "NEXUS Command Center", "role": "Launcher and Control Center" },
+  { "id": "sys_omega", "type": "system", "name": "Omega Ops Dashboard", "role": "Operations System" },
+  { "id": "sys_recruit", "type": "system", "name": "Recruitment Hub", "role": "Candidate Management" },
+  { "id": "sys_gateway", "type": "system", "name": "Omega Gateway", "role": "API Server for Omega" },
+  { "id": "sys_bridge", "type": "system", "name": "Omega Local Bridge", "role": "Read-Only Data Bridge" },
+  { "id": "sys_ollama", "type": "system", "name": "Ollama", "role": "Local LLM Provider" },
+  { "id": "proj_nexus", "type": "project", "name": "NEXUS", "role": "Umbrella Ecosystem" },
+  { "id": "proj_omega", "type": "project", "name": "Omega Ops", "role": "Daily Operations" },
+  { "id": "proj_recruit", "type": "project", "name": "Recruitment Hub", "role": "Hiring and Talent" },
+  { "id": "proj_powershield", "type": "project", "name": "PowerShield", "role": "Unknown / Future Project" },
+  { "id": "dec_1", "type": "decision", "title": "NOVA is the only visible assistant." },
+  { "id": "dec_2", "type": "decision", "title": "Workspaces is manual backup launcher." },
+  { "id": "dec_3", "type": "decision", "title": "Runtime Services is hidden technical backup." },
+  { "id": "dec_4", "type": "decision", "title": "No commit without Moh approval." },
+  { "id": "dec_5", "type": "decision", "title": "Omega and Recruitment must launch from NOVA and buttons." }
+]

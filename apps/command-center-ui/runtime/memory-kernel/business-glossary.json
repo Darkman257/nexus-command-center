@@ -1,0 +1,13 @@
+{
+  "glossary": [
+    { "term": "مشروع", "domain": "OMEGA", "meaning": "موقع عمل أو مشروع تحت التنفيذ." },
+    { "term": "مرشح", "domain": "RECRUITMENT", "meaning": "شخص متقدم لوظيفة في مرحلة التقييم." },
+    { "term": "مكتب فني", "domain": "OMEGA", "meaning": "قسم مسؤول عن التصميمات والاعتمادات في المشاريع." },
+    { "term": "عربية", "domain": "OMEGA", "meaning": "مركبة تابعة للشركة في إدارة الأسطول." },
+    { "term": "أصل", "domain": "OMEGA", "meaning": "معدة أو جهاز مسجل كأصل في الشركة." },
+    { "term": "مهمة", "domain": "OMEGA", "meaning": "تكليف عمل أو Task مطلوبة من موظف." },
+    { "term": "قرار", "domain": "NEXUS", "meaning": "قرار استراتيجي يخص النظام أو الشركة." },
+    { "term": "مقابلة", "domain": "RECRUITMENT", "meaning": "موعد مقابلة شخصية لمرشح." },
+    { "term": "متابعة", "domain": ["OMEGA", "RECRUITMENT"], "meaning": "عملية متابعة مهمة متأخرة أو مرشح لم يرد." }
+  ]
+}

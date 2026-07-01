@@ -1,0 +1,12 @@
+{
+  "questions": [
+    { "keywords": ["مين"], "domains": ["NEXUS", "RECRUITMENT"], "intent": "identity_or_candidate" },
+    { "keywords": ["ايه"], "domains": ["NEXUS", "OMEGA"], "intent": "status_or_entities" },
+    { "keywords": ["راجع"], "domains": ["OMEGA", "NEXUS"], "intent": "audit" },
+    { "keywords": ["افتح"], "domains": ["NEXUS"], "intent": "launcher" },
+    { "keywords": ["أفضل", "افضل"], "domains": ["RECRUITMENT"], "intent": "top_candidates" },
+    { "keywords": ["متأخر", "متاخر"], "domains": ["OMEGA", "RECRUITMENT"], "intent": "overdue_tasks" },
+    { "keywords": ["متابعة", "متابعه"], "domains": ["OMEGA", "RECRUITMENT"], "intent": "follow_up" },
+    { "keywords": ["تايم لاين", "التايم لاين"], "domains": ["NEXUS"], "intent": "timeline" }
+  ]
+}

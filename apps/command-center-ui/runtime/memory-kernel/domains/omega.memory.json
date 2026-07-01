@@ -1,0 +1,9 @@
+{
+  "projects": ["Alpha", "Beta", "Gamma"],
+  "sites": ["HQ", "Site A", "Site B"],
+  "vehicles": ["V-101", "V-102", "V-103"],
+  "assets": ["Server Rack 1", "Heavy Machinery A"],
+  "tasks": ["Audit Site A", "Refuel V-101", "Deploy Beta"],
+  "risks": ["Delayed refuel", "Overdue tasks"],
+  "reports": ["Daily Ops", "Weekly Summary"]
+}

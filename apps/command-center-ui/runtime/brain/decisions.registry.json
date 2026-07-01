@@ -1,0 +1,9 @@
+[
+  "NOVA is the only visible interface.",
+  "Workspaces is manual backup launcher.",
+  "Runtime Services is hidden technical backup.",
+  "Qwen is not visible to user.",
+  "Execution bridge requires approval before file changes.",
+  "No commit without Moh approval.",
+  "Local services should open in standalone app windows."
+]

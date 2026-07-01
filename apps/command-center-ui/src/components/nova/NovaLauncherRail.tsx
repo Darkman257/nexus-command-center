@@ -1,10 +1,9 @@
-import { motion } from 'framer-motion';
-import { Database, Globe, Users, Cpu, Shield, Brain, GitBranch, Settings } from 'lucide-react';
+import { Activity, LayoutGrid, Sparkles, Radio, FileText, Cpu, Settings, Server } from 'lucide-react';
 
 interface LauncherItem {
   id: string;
   name: string;
-  Icon: React.FC<{ size?: number }>;
+  Icon: React.FC<{ size?: number; className?: string }>;
   color: string;
   status: 'online' | 'offline' | 'warning' | 'standby';
 }
@@ -15,7 +14,6 @@ interface Props {
   omegaOnline: boolean;
   recruitStat: string;
   telStat: string;
-  apiStat: string;
   novaOnline: boolean;
   bridgeOnline: boolean;
 }
@@ -26,87 +24,91 @@ export function NovaLauncherRail({
   omegaOnline,
   recruitStat,
   telStat,
-  apiStat,
   novaOnline,
   bridgeOnline,
 }: Props) {
   const getStatus = (id: string): LauncherItem['status'] => {
     switch (id) {
-      case 'cc':
-        return bridgeOnline ? 'online' : 'offline';
-      case 'omega':
-        return omegaOnline ? 'online' : 'offline';
-      case 'recruit':
-        return recruitStat === 'ACTIVE' ? 'online' : recruitStat === 'OFFLINE' ? 'offline' : 'standby';
-      case 'automation':
-        return telStat === 'ACTIVE' ? 'online' : 'standby';
-      case 'security':
-        return 'online';
-      case 'intelligence':
-        return novaOnline ? 'online' : 'standby';
-      case 'deployment':
-        return apiStat === 'ACTIVE' ? 'online' : 'warning';
-      default:
-        return 'standby';
+      case 'cc':          return bridgeOnline ? 'online' : 'offline';
+      case 'workspaces':  return omegaOnline || recruitStat === 'ACTIVE' ? 'online' : 'standby';
+      case 'nova':        return novaOnline ? 'online' : 'offline';
+      case 'intelligence':return novaOnline ? 'online' : 'standby';
+      case 'automations': return telStat === 'ACTIVE' ? 'online' : 'standby';
+      default:            return 'standby';
     }
   };
 
   const items: LauncherItem[] = [
-    { id: 'cc', name: 'Command Center', Icon: Database, color: '#00d2ff', status: getStatus('cc') },
-    { id: 'omega', name: 'Omega Operations', Icon: Globe, color: '#00e676', status: getStatus('omega') },
-    { id: 'recruit', name: 'Recruitment Hub', Icon: Users, color: '#d500f9', status: getStatus('recruit') },
-    { id: 'automation', name: 'Automation Layer', Icon: Cpu, color: '#7b61ff', status: getStatus('automation') },
-    { id: 'security', name: 'Security Grid', Icon: Shield, color: '#ffab00', status: getStatus('security') },
-    { id: 'intelligence', name: 'Intelligence Core', Icon: Brain, color: '#00d2ff', status: getStatus('intelligence') },
-    { id: 'deployment', name: 'Deployment Engine', Icon: GitBranch, color: '#00d2ff', status: getStatus('deployment') },
-    { id: 'settings', name: 'Settings', Icon: Settings, color: '#a8b8cc', status: 'standby' },
+    { id: 'cc',           name: 'Situation Room', Icon: Activity,    color: '#00d2ff', status: getStatus('cc') },
+    { id: 'workspaces',   name: 'Workspaces',     Icon: LayoutGrid,  color: '#00e676', status: getStatus('workspaces') },
+    { id: 'nova',         name: 'NOVA',           Icon: Sparkles,    color: '#d500f9', status: getStatus('nova') },
+    { id: 'intelligence', name: 'Intelligence',   Icon: Radio,       color: '#7b61ff', status: getStatus('intelligence') },
+    { id: 'reports',      name: 'Reports',        Icon: FileText,    color: '#a8b8cc', status: 'standby' },
+    { id: 'automations',  name: 'Automations',    Icon: Cpu,         color: '#ffab00', status: getStatus('automations') },
+    { id: 'nexus-core',   name: 'NEXUS Core',     Icon: Server,      color: '#00d2ff', status: 'online' },
+    { id: 'settings',     name: 'Settings',       Icon: Settings,    color: '#546e7a', status: 'online' },
   ];
 
-  const handleItemClick = (id: string) => {
-    if (activeItem === id) {
-      setActiveItem(null);
-    } else {
-      setActiveItem(id);
-    }
-  };
-
   const dotColors: Record<LauncherItem['status'], string> = {
-    online: '#00e676',
+    online:  '#00e676',
     offline: '#ff1744',
     warning: '#ffab00',
-    standby: '#7b61ff',
+    standby: '#37474f',
+  };
+
+  const handleItemClick = (id: string) => {
+    setActiveItem(activeItem === id ? null : id);
   };
 
   return (
-    <aside className="nova-launcher-rail">
-      <div className="launcher-items">
-        {items.map((item) => {
-          const isActive = activeItem === item.id;
+    <aside className="nexus-sidebar">
+      {/* Logo */}
+      <div className="sidebar-logo-container">
+        <div className="sidebar-logo-icon">
+          <Activity size={18} style={{ color: 'var(--cyan)' }} />
+        </div>
+        <div className="sidebar-logo-text">
+          <span className="logo-brand">NEXUS</span>
+          <span className="logo-sub">COMMAND CENTER</span>
+        </div>
+      </div>
+
+      {/* Nav items */}
+      <nav className="sidebar-nav">
+        {items.map(item => {
+          const isActive = activeItem === item.id || (activeItem === null && item.id === 'cc');
           const statusColor = dotColors[item.status];
           return (
-            <div key={item.id} className="launcher-btn-container">
-              <motion.button
-                className={`launcher-btn ${isActive ? 'active' : ''}`}
-                style={{ '--btn-color': item.color } as React.CSSProperties}
-                whileHover={{ scale: 1.08 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleItemClick(item.id)}
-              >
-                <item.Icon size={18} />
-                <span className="btn-indicator" style={{ background: statusColor }} />
-              </motion.button>
-              
-              {/* Tooltip on Hover */}
-              <div className="launcher-tooltip">
-                <span className="tooltip-name">{item.name}</span>
-                <span className="tooltip-status" style={{ color: statusColor }}>
-                  ● {item.status.toUpperCase()}
-                </span>
-              </div>
-            </div>
+            <button
+              key={item.id}
+              className={`sidebar-nav-btn ${isActive ? 'active' : ''}`}
+              style={{ '--btn-color': item.color } as React.CSSProperties}
+              onClick={() => handleItemClick(item.id)}
+            >
+              <item.Icon size={16} className="sidebar-btn-icon" />
+              <span className="sidebar-btn-label">{item.name}</span>
+              <span
+                className="sidebar-btn-dot"
+                style={{
+                  background: statusColor,
+                  boxShadow: item.status === 'online' ? `0 0 5px ${statusColor}` : 'none',
+                }}
+              />
+            </button>
           );
         })}
+      </nav>
+
+      {/* Footer orb */}
+      <div className="sidebar-footer">
+        <div className="sidebar-glowing-orb">
+          <div className="orb-ring-1" />
+          <div className="orb-ring-2" />
+          <div className="orb-core" />
+        </div>
       </div>
     </aside>
   );
 }
+
+export default NovaLauncherRail;

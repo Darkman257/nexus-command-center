@@ -1,0 +1,5 @@
+vehicle_id,fuel_liters,cost_le,odometer,driver_id
+TX-409,75,1100,124500,EMP-203
+TX-409,75,1100,124500,EMP-203
+TX-512,180,4500,89200,EMP-204
+TX-902,,1200,54100,EMP-206

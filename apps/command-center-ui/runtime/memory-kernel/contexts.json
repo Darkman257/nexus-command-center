@@ -1,0 +1,21 @@
+{
+  "NEXUS": [
+    "system",
+    "decisions",
+    "timeline",
+    "architecture"
+  ],
+  "OMEGA": [
+    "projects",
+    "tasks",
+    "vehicles",
+    "assets",
+    "operations"
+  ],
+  "RECRUITMENT": [
+    "candidates",
+    "interviews",
+    "hiring",
+    "call-center"
+  ]
+}

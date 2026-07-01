@@ -1,0 +1,5 @@
+invoice_id,supplier_id,amount_usd,due_date,status
+INV-908,SUP-22,1500,2026-06-15,pending
+INV-909,SUP-22,15000,2026-06-15,pending
+INV-910,SUP-34,3500,2026-06-20,approved
+,,,,,

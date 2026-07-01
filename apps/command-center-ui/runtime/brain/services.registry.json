@@ -1,0 +1,79 @@
+[
+  {
+    "id": "command-center",
+    "name": "NEXUS Command Center",
+    "port": 5173,
+    "url": "http://localhost:5173",
+    "healthEndpoint": "http://localhost:5173/api/services/status",
+    "launchable": true,
+    "visible": true,
+    "technicalOnly": false,
+    "optional": false
+  },
+  {
+    "id": "recruitment-hub",
+    "name": "Recruitment Hub",
+    "port": 5174,
+    "url": "http://localhost:5174",
+    "healthEndpoint": "http://localhost:5174",
+    "launchable": true,
+    "visible": true,
+    "technicalOnly": false,
+    "optional": true
+  },
+  {
+    "id": "omega-dashboard",
+    "name": "Omega Ops Dashboard",
+    "port": 3000,
+    "url": "http://localhost:3000",
+    "healthEndpoint": "http://localhost:3000",
+    "launchable": true,
+    "visible": true,
+    "technicalOnly": false,
+    "optional": false
+  },
+  {
+    "id": "omega-gateway",
+    "name": "Omega Gateway",
+    "port": 5000,
+    "url": "http://localhost:5000",
+    "healthEndpoint": "http://localhost:5000/api/health",
+    "launchable": true,
+    "visible": false,
+    "technicalOnly": true,
+    "optional": false
+  },
+  {
+    "id": "omega-bridge",
+    "name": "Omega Local Bridge",
+    "port": 5057,
+    "url": "http://localhost:5057",
+    "healthEndpoint": "http://localhost:5057/health",
+    "launchable": true,
+    "visible": false,
+    "technicalOnly": true,
+    "optional": false
+  },
+  {
+    "id": "ollama",
+    "name": "Ollama Server",
+    "port": 11434,
+    "url": "http://localhost:11434",
+    "healthEndpoint": "http://localhost:11434",
+    "launchable": true,
+    "visible": false,
+    "technicalOnly": true,
+    "optional": true
+  },
+  {
+    "id": "legacy-call-center",
+    "name": "Legacy Call Center Integration",
+    "port": 0,
+    "url": "N/A",
+    "healthEndpoint": "N/A",
+    "launchable": false,
+    "visible": false,
+    "technicalOnly": true,
+    "optional": true
+  }
+]

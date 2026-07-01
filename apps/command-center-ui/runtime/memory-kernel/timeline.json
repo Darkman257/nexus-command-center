@@ -1,0 +1,9 @@
+[
+  { "id": "t1", "date": "2026-05", "title": "WSL2 recovery", "type": "milestone", "summary": "Recovered WSL2 environment for local development.", "relatedEntities": ["sys_nexus"], "importance": "high" },
+  { "id": "t2", "date": "2026-05", "title": "Docker recovery", "type": "milestone", "summary": "Restored Docker services.", "relatedEntities": ["sys_nexus"], "importance": "high" },
+  { "id": "t3", "date": "2026-05", "title": "Command Center stabilization", "type": "milestone", "summary": "Stabilized the daily launcher for operational UI.", "relatedEntities": ["sys_nexus"], "importance": "critical" },
+  { "id": "t4", "date": "2026-05", "title": "3D System Graph creation", "type": "milestone", "summary": "Created a 3D visualization of the NEXUS topology.", "relatedEntities": ["sys_nexus"], "importance": "medium" },
+  { "id": "t5", "date": "2026-05", "title": "NOVA Unified Command Interface", "type": "milestone", "summary": "Implemented chat-based execution and intelligence via NOVA.", "relatedEntities": ["p_nova", "sys_nexus"], "importance": "high" },
+  { "id": "t6", "date": "2026-05", "title": "Bridge 5057 recovery", "type": "milestone", "summary": "Recovered the local read-only bridge for Omega dashboard.", "relatedEntities": ["sys_bridge", "sys_omega"], "importance": "high" },
+  { "id": "t7", "date": "2026-05", "title": "Daily launcher stabilization", "type": "milestone", "summary": "Ensured services reliably spin up with correct dependencies.", "relatedEntities": ["sys_nexus"], "importance": "high" }
+]

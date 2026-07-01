@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Activity, Terminal, Eye, HelpCircle, FileText, Layers, Sparkles, Paperclip, X, Copy, CheckSquare, Bookmark, Shield } from 'lucide-react';
-import { getLocalResponse } from '../../brain/nexusLocalResponder';
+import { Send, Activity, Terminal, Eye, HelpCircle, FileText, Layers, Sparkles, Paperclip, X, CheckSquare, Bookmark, Shield } from 'lucide-react';
 import { generateHamadaCommand } from '../../brain/nexusCommandTemplates';
+import { globalMemoryStore } from '../../brain/nova-memory/memoryStore';
+import { buildMemoryContext } from '../../brain/nova-memory/memoryContextBuilder';
 
 export interface ChatEntry {
   role: 'user' | 'nova' | 'assistant' | 'system' | 'warning' | 'command';
@@ -11,6 +12,16 @@ export interface ChatEntry {
   timestamp: string;
   responseType?: string;
   projectScope?: string;
+  provider?: string;
+  duration?: number;
+  confidence?: number;
+  indicators?: {
+    router?: boolean;
+    memoryUsed?: boolean;
+    search?: boolean;
+    execution?: boolean;
+  };
+  actions?: { label: string; icon?: string; message: string; }[];
 }
 
 interface Props {
@@ -98,25 +109,52 @@ export function NovaAssistantPanel({
           responseType: 'Insight'
         });
       } else {
+        const memoryContext = buildMemoryContext(globalMemoryStore.getState());
+        globalMemoryStore.addChat('user', userMsg);
+
         const doFetch = window['fetch'];
+        const requestBody = { 
+          message: userMsg, 
+          projectScope: 'Nexus Command Center', 
+          mode: 'advisor',
+          memoryContext: memoryContext
+        };
+
+        console.log('>>> [NOVA UI REQUEST]');
+        console.log('REQUEST URL: /api/nova/chat');
+        console.log('REQUEST BODY:', requestBody);
+
         const res = await doFetch('/api/nova/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ message: userMsg, projectScope: 'Nexus Command Center', mode: 'advisor' }),
+          body: JSON.stringify(requestBody),
         });
         const data = await res.json();
-        addEntry({ role: 'nova', content: data.reply || 'No response.', timestamp: ts(), responseType: 'Insight' });
+
+        console.log('<<< [NOVA UI RESPONSE]');
+        console.log('RESPONSE JSON:', data);
+
+        globalMemoryStore.addChat('nova', data.reply || 'No response.');
+
+        addEntry({ 
+          role: 'nova', 
+          content: data.reply || 'No response.', 
+          timestamp: ts(), 
+          responseType: 'Local Memory Insight',
+          provider: data.provider,
+          duration: data.duration,
+          confidence: data.confidence,
+          indicators: data.indicators,
+          actions: data.actions
+        });
       }
-    } catch {
-      const local = getLocalResponse(userMsg, 'Nexus Command Center');
-      const textContent = local.find(d => d.type === 'text')?.content ?? 'Local response.';
-      const cmdContent = local.find(d => d.type === 'command')?.content;
+    } catch (err) {
+      console.error("[NOVA UI Error]", err);
       addEntry({
-        role: 'assistant',
-        content: textContent,
-        command: cmdContent,
+        role: 'system',
+        content: `NOVA backend error: ${(err as Error).message || 'Connection failed'}`,
         timestamp: ts(),
-        responseType: cmdContent ? 'Hamada Command' : 'Insight'
+        responseType: 'Error'
       });
     } finally {
       setLoading(false);
@@ -136,6 +174,7 @@ export function NovaAssistantPanel({
       return;
     }
     const cmd = generateHamadaCommand('Nexus Command Center', goal, `Quick action: ${label}`);
+    globalMemoryStore.addCommand(cmd);
     const resType = label.includes('Status') ? 'Status' : 'Hamada Command';
     addEntry({ role: 'user', content: `Requesting: ${label}`, timestamp: ts() });
     addEntry({
@@ -275,7 +314,7 @@ export function NovaAssistantPanel({
 
             return (
               <div key={idx} className={`nap-msg-card ${cardClass}`}>
-                <div className="msg-card-header">
+                 <div className="msg-card-header">
                   <span className="msg-sender">
                     {isUser ? 'YOU (OWNER)' : isSystem ? 'SYSTEM' : 'NOVA (AI)'}
                   </span>
@@ -285,7 +324,43 @@ export function NovaAssistantPanel({
                   )}
                 </div>
 
-                <p className="msg-text">{entry.content}</p>
+                {/* Compact Metadata Header */}
+                {!isUser && !isSystem && (entry.provider || entry.duration !== undefined) && (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    fontSize: '0.45rem',
+                    color: '#78909c',
+                    fontFamily: 'monospace',
+                    marginBottom: 4,
+                    flexWrap: 'wrap',
+                    borderBottom: '1px dashed rgba(255,255,255,0.05)',
+                    paddingBottom: 4
+                  }}>
+                    <span style={{ color: '#00d2ff', fontWeight: 600 }}>
+                      {entry.provider === 'nexus-router' ? '⚡ NOVA Router' :
+                       entry.provider === 'nexus-memory' ? '🧠 NOVA Memory' :
+                       entry.provider === 'ollama' ? '🤖 Ollama Engine' :
+                       entry.provider === 'openai' ? '🤖 OpenAI Bridge' : 'NOVA Engine'}
+                    </span>
+                    <span>•</span>
+                    <span>{entry.duration !== undefined ? `${entry.duration.toFixed(2)}s` : '0.0s'}</span>
+                    <span>•</span>
+                    <span>Confidence {entry.confidence ? `${(entry.confidence * 100).toFixed(0)}%` : '98%'}</span>
+                    
+                    {entry.indicators && (
+                      <div style={{ display: 'flex', gap: 4, marginLeft: 'auto', alignItems: 'center' }}>
+                        {entry.indicators.memoryUsed && <span style={{ background: 'rgba(213,0,249,0.04)', border: '1px solid rgba(213,0,249,0.15)', padding: '1px 3px', borderRadius: 3, fontSize: '0.38rem', color: '#d500f9' }}>🧠 Mem</span>}
+                        {entry.indicators.router && <span style={{ background: 'rgba(0,210,255,0.04)', border: '1px solid rgba(0,210,255,0.15)', padding: '1px 3px', borderRadius: 3, fontSize: '0.38rem', color: '#00d2ff' }}>⚡ Rot</span>}
+                        {entry.indicators.search && <span style={{ background: 'rgba(0,230,118,0.04)', border: '1px solid rgba(0,230,118,0.15)', padding: '1px 3px', borderRadius: 3, fontSize: '0.38rem', color: '#00e676' }}>🔍 Src</span>}
+                        {entry.indicators.execution && <span style={{ background: 'rgba(255,23,68,0.04)', border: '1px solid rgba(255,23,68,0.15)', padding: '1px 3px', borderRadius: 3, fontSize: '0.38rem', color: '#ff1744' }}>🛠 Exec</span>}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <p className="msg-text" dir="auto">{entry.content}</p>
 
                 {entry.command && (
                   <div className="msg-command-box">
@@ -293,11 +368,57 @@ export function NovaAssistantPanel({
                   </div>
                 )}
 
+                {/* Remote Smart Action Buttons */}
+                {!isUser && !isSystem && entry.actions && entry.actions.length > 0 && (
+                  <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 8, borderTop: '1px dashed rgba(255,255,255,0.05)', paddingTop: 6 }}>
+                    {entry.actions.map((act, ai) => (
+                      <button
+                        key={ai}
+                        onClick={() => handleSend(act.message)}
+                        disabled={loading}
+                        style={{
+                          background: 'rgba(0,210,255,0.06)',
+                          border: '1px solid rgba(0,210,255,0.2)',
+                          color: '#00d2ff',
+                          fontFamily: 'monospace',
+                          fontSize: '0.45rem',
+                          padding: '3px 8px',
+                          borderRadius: 4,
+                          cursor: loading ? 'default' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 3,
+                          opacity: loading ? 0.5 : 1,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        🚀 {act.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 {/* Inline Action Buttons */}
                 {!isUser && !isSystem && (
                   <div className="msg-inline-actions">
                     <button className="msg-act-btn" onClick={() => copyToClipboard(entry.content)}>
-                      <Copy size={9} /> Copy Reply
+                      📋 Copy Reply
+                    </button>
+                    <button className="msg-act-btn" onClick={() => {
+                      for (let i = idx - 1; i >= 0; i--) {
+                        if (chatLog[i].role === 'user') {
+                          handleSend(chatLog[i].content);
+                          break;
+                        }
+                      }
+                    }}>
+                      ↻ Retry
+                    </button>
+                    <button className="msg-act-btn" onClick={() => {
+                      globalMemoryStore.pinItem(entry.content);
+                      addEntry({ role: 'system', content: '📌 Saved to Live Memory', timestamp: ts(), responseType: 'System' });
+                    }}>
+                      📌 Save Memory
                     </button>
                     {entry.command && (
                       <button className="msg-act-btn text-cyan" onClick={() => copyToClipboard(entry.command!)}>

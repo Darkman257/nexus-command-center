@@ -1,0 +1,9 @@
+{
+  "systems": ["NEXUS Command Center", "Omega Ops Dashboard", "Recruitment Hub"],
+  "services": ["Omega Gateway", "Omega Bridge"],
+  "decisions": ["NOVA is the single visible assistant", "No commits without Moh approval"],
+  "timeline": ["Recovered WSL2", "Docker recovery", "Stabilized Command Center", "Built Graph 3D", "Unified NOVA routing", "Federated Memory", "Business Domains Injection"],
+  "architecture": "React frontend, Vite bundler, Supabase DB, Node/Express bridge",
+  "currentCapabilities": ["Context switching", "Intent routing", "Local health checks", "Service launching"],
+  "remainingGaps": ["Dynamic DB ingestion", "Execution Bridge automation", "Live graph sync"]
+}

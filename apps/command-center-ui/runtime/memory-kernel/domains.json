@@ -1,0 +1,19 @@
+{
+  "domains": [
+    {
+      "id": "NEXUS",
+      "name": "NEXUS Command Center",
+      "description": "Core operating brain, launcher, and system monitor."
+    },
+    {
+      "id": "OMEGA",
+      "name": "Omega Ops Dashboard",
+      "description": "Daily operations, projects, vehicles, tasks, and site management."
+    },
+    {
+      "id": "RECRUITMENT",
+      "name": "Recruitment Hub",
+      "description": "Candidate intake, interviews, and hiring pipeline."
+    }
+  ]
+}

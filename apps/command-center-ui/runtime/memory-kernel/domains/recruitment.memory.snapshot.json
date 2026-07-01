@@ -1,0 +1,119 @@
+{
+  "ok": true,
+  "source": "recruitment-supabase",
+  "syncedAt": "2026-05-31T20:17:19.429Z",
+  "summary": {
+    "candidatesCount": 49,
+    "positionsCount": 1,
+    "interviewsCount": 0,
+    "onboardingQueueCount": 1,
+    "callLogsCount": 3,
+    "statusHistoryCount": 2,
+    "documentsCount": 0
+  },
+  "pipelineByStatus": {
+    "accepted": 1,
+    "screening": 48
+  },
+  "candidatesByRole": {
+    "Unknown": 49
+  },
+  "followupsDue": [],
+  "interviewsSummary": {
+    "total": 0
+  },
+  "safeSample": [
+    {
+      "id": "c985af77-3cad-4953-94cd-5670004f9dfa",
+      "full_name": "Test Onboarding Engineer",
+      "target_role": "Unknown",
+      "status": "accepted",
+      "stage": "connected",
+      "source": "DIRECT ENTRY",
+      "screening_score": 0
+    },
+    {
+      "id": "eb948027-8dc3-4112-b110-9eb3d0f6d8a1",
+      "full_name": "Ahmad Mohammed Saleh",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: Ahmed Waheed.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "f769b75e-c8b3-452e-a461-c79f7384dfea",
+      "full_name": "Ahmad Nashaat",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: CM.Ahmad Nashaat CV_2026.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "6bb0563b-30c8-48dc-8887-d6d1fb9e7115",
+      "full_name": "Ahmed Abdelaal Abdelaziz Aly",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: AHMED ALY MEP Engineer.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "fd384300-36a0-435a-86f3-5f251a70f22a",
+      "full_name": "Ahmed Mohamed El Sayed",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: CV. of Eng Ahmed.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "95332133-3c24-4823-948f-817d308d176e",
+      "full_name": "Ahmed Waheed Abd El-Ghany Ali Elsayad",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: Waheed CV.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "229ba084-4d7a-4336-aab8-51362c117c20",
+      "full_name": "Alaa Salah Mohamed",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: Alaa Salah OMEGA-TO-02.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "94c99e35-d867-42b5-a81d-3bcb5c343a42",
+      "full_name": "Arsanios Nabil Saadallah",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: ARSANIOS NABIL-Omega-To-02.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "1dfcf118-38c4-4df3-8c41-12dbc04b716e",
+      "full_name": "Ayaa Abdelgleel Sayed Abdelgleel",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: Ayaa.abdelgleel-Sr.Estimation_.pdf",
+      "screening_score": 0
+    },
+    {
+      "id": "cca6313b-3872-49ae-805d-3f2b7027bf28",
+      "full_name": "AYMAN ELARIENY",
+      "target_role": "Unknown",
+      "status": "screening",
+      "stage": "pending",
+      "source": "CSV IMPORT: Ayman El. CV.pdf",
+      "screening_score": 0
+    }
+  ],
+  "emptyTables": [],
+  "warnings": []
+}

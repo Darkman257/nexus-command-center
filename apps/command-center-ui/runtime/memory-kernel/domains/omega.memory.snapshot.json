@@ -1,0 +1,408 @@
+{
+  "ok": true,
+  "source": "omega-supabase",
+  "syncedAt": "2026-05-31T20:02:00.178Z",
+  "summary": {
+    "projectsCount": 8,
+    "staffCount": 126,
+    "vehiclesCount": 66,
+    "housingUnitsCount": 5,
+    "housingAssignmentsCount": 21,
+    "attendanceCount": 1243,
+    "attendanceLogsCount": 170,
+    "approvalsCount": 7,
+    "applicantsCount": 94,
+    "onboardingQueueCount": 1,
+    "tasksCount": 0,
+    "assetsCount": 0,
+    "documentsCount": 0
+  },
+  "staffSummary": {
+    "total": 126,
+    "byDepartment": {
+      "Project Management": 6,
+      "Fleet & Equipment": 9,
+      "Finance & Accounts": 3,
+      "Quality Control": 2,
+      "Admin & HR": 3,
+      "Technical Office": 5,
+      "Site Execution": 31,
+      "MEP / Electrical": 3,
+      "Surveying": 6,
+      "HSE / Safety": 4,
+      "Procurement": 1,
+      "Document Control": 2,
+      "Stores / Warehouse": 3,
+      "Security": 4,
+      "Construction": 1,
+      "Unknown": 42,
+      "Executive Office": 1
+    },
+    "byRole": {
+      "مدير مشروع": 2,
+      "مدير مكتب فني": 2,
+      "م/ تنفيذ": 1,
+      "سائق لودر": 2,
+      "محاسب أول": 3,
+      "مهندس جوده": 2,
+      "مشرف ادارى": 2,
+      "مكتب فني": 3,
+      "مهندس مكتب فنى": 6,
+      "مهندس تنفيذ": 14,
+      "مشرف تنفيذ": 11,
+      "مشرف - كهرباء": 1,
+      "مساح": 6,
+      "مشرف سلامه وصحة مهنية": 5,
+      "محاسب": 1,
+      "مسئول مشتريات": 2,
+      "مسئول ضبط مستندات": 1,
+      "امين مخزن": 2,
+      "ضبط مستندات": 1,
+      "مسئول مساحة": 1,
+      "مشرف سلامه": 3,
+      "تركيبات": 1,
+      "مسئول سلامه": 1,
+      "مدير معدات": 2,
+      "سائق ملاكى": 3,
+      "سائق نقل": 1,
+      "كهربائى": 2,
+      "وناش برجى": 4,
+      "بحرى": 3,
+      "لحام": 3,
+      "لحام معدات": 1,
+      "فنى شدة معدنية": 3,
+      "عامل مخزن": 1,
+      "فرد امن": 4,
+      "بوفيه": 1,
+      "ميكانيكى": 2,
+      "سائق": 1,
+      "مشغل أسانسير": 2,
+      "Candidate": 1,
+      "مدير المشروعات": 1,
+      "مدير جوده": 1,
+      "Executive Manager": 1,
+      "مشرف كهرباء": 1,
+      "منسق وثائق أول": 1,
+      "منسق وثائق": 1,
+      "مشرف شئون ادارية": 1,
+      "اخصائي شئون ادارية": 1,
+      "أمين مخزن": 2,
+      "مساح اول": 2,
+      "مدير سلامه وصحة مهنية": 1,
+      "كهربائي كنترول": 1,
+      "سائق ربع نقل": 2,
+      "سائق ملاكي": 3
+    },
+    "byStatus": {
+      "Inactive": 1,
+      "active": 124,
+      "Active": 1
+    },
+    "bySite": {
+      "Unknown": 98,
+      "Obsidier Tower": 27,
+      "مشروع انشاء الهيكل الخرساني لابراج اوبسيدر تاورز العاصمة الادارية الجديدة": 1
+    },
+    "sample": [
+      {
+        "id": "4e095843-1777-428e-8827-df3445c20b66",
+        "full_name": "حسام فتحى محمود",
+        "internal_code": "801",
+        "position": "مدير مشروع",
+        "department": "Project Management",
+        "job_title": "مدير مشروع",
+        "current_site": null,
+        "status": "Inactive",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "ef802795-36f5-4b63-bf52-c0743d35d36b",
+        "full_name": "هانى محمد يوسف",
+        "internal_code": "1002",
+        "position": "مدير مكتب فني",
+        "department": "Project Management",
+        "job_title": "مدير مكتب فني",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "2d1f6861-ee73-45eb-8c64-0a90bc7ac944",
+        "full_name": "أحمد خيرى محمد",
+        "internal_code": "800",
+        "position": "م/ تنفيذ",
+        "department": "Project Management",
+        "job_title": "م/ تنفيذ",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "fb4943ff-bb23-4eff-a334-6765e11d67a4",
+        "full_name": "محمد حسن خلاف",
+        "internal_code": "1001",
+        "position": "مدير مشروع",
+        "department": "Project Management",
+        "job_title": "مدير مشروع",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "b5518224-d23f-41d1-8e0c-5871c896e1a5",
+        "full_name": "ناجي خليفة عبدالهادي",
+        "internal_code": "1039",
+        "position": null,
+        "department": "Fleet & Equipment",
+        "job_title": "سائق لودر",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "36831d05-6421-44e5-a43d-e48beb9afa69",
+        "full_name": "أحمد محمد إحسان",
+        "internal_code": "1048",
+        "position": null,
+        "department": "Finance & Accounts",
+        "job_title": "محاسب أول",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "69a62c1e-0a0a-4d72-9b56-c5289aaa7d8c",
+        "full_name": "محمد راضى يوسف",
+        "internal_code": "1054",
+        "position": null,
+        "department": "Quality Control",
+        "job_title": "مهندس جوده",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "763d3f97-adda-47e3-96b8-f4a64750f55d",
+        "full_name": "محمود حمدى فتحى",
+        "internal_code": "1026",
+        "position": null,
+        "department": "Admin & HR",
+        "job_title": "مشرف ادارى",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "a83ea13c-e452-45b2-bd37-c1b1ab2c214a",
+        "full_name": "احمد عبدالمنعم احمد",
+        "internal_code": "1013",
+        "position": null,
+        "department": "Technical Office",
+        "job_title": "مكتب فني",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      },
+      {
+        "id": "67a54e68-4bdb-4b83-9f54-0e9afa81304f",
+        "full_name": "صلاح جابر عبد الحليم",
+        "internal_code": "1010",
+        "position": null,
+        "department": "Technical Office",
+        "job_title": "مكتب فني",
+        "current_site": null,
+        "status": "active",
+        "assigned_vehicle": null,
+        "housing_unit": null
+      }
+    ]
+  },
+  "projects": [
+    {
+      "id": 9,
+      "project_name": "شاطيء سان ستيفانو الخاص الفورسيزونز - المرحلة الأولى",
+      "status": "Finished",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 10,
+      "project_name": "شاطيء سان ستيفانو الخاص الفورسيزونز - المرحلة الثانية",
+      "status": "Finished",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 11,
+      "project_name": "شاطيء سان ستيفانو الخاص الفورسيزونز - المرحلة الثالثة",
+      "status": "Finished",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 12,
+      "project_name": "مشروع فورسيزونز شرم الشيخ (المطعم الرئيسي و11 مبنى خدمي)",
+      "status": "Finished",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 13,
+      "project_name": "انشاء و تشطيب الوحده الصحية بدمنهور",
+      "status": "Finished",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 14,
+      "project_name": "مشروع مشارف العامرية انشاء وتشطيب عدد 4 ابراج",
+      "status": "In Progress",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 15,
+      "project_name": "مشروع تجديد فندق اشتيجنبرجر التحرير",
+      "status": "Finished",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    },
+    {
+      "id": 16,
+      "project_name": "مشروع انشاء الهيكل الخرساني لابراج اوبسيدر تاورز العاصمة الادارية الجديدة",
+      "status": "In Progress",
+      "created_at": "2026-04-30T09:08:15.933619+00:00"
+    }
+  ],
+  "vehiclesSummary": {
+    "total": 66,
+    "byStatus": {
+      "Active": 10
+    },
+    "sample": [
+      {
+        "id": "e13542d1-bafc-42e8-a02b-3dd6e005e58d",
+        "plate_number": "سيارة ملاكى MG",
+        "car_name": "1",
+        "status": "Active",
+        "driver": "سيد رشاد"
+      },
+      {
+        "id": "908c901a-2c04-4ab8-a01a-057b7f61b7d6",
+        "plate_number": "سيارة ملاكى Nissan ",
+        "car_name": "2",
+        "status": "Active",
+        "driver": "عصام يسرى"
+      },
+      {
+        "id": "bf4b09ea-321a-44b4-9d0c-00ead4b347e7",
+        "plate_number": "سيارة ملاكى Nissan ",
+        "car_name": "3",
+        "status": "Active",
+        "driver": "أحمد سعيد"
+      },
+      {
+        "id": "7a012c00-cb52-48fb-bde1-8bed74c952de",
+        "plate_number": "سيارة ملاكى Nissan ",
+        "car_name": "4",
+        "status": "Active",
+        "driver": "دجوي ال"
+      },
+      {
+        "id": "2993df05-cc26-40d4-b842-dbfa0658f03d",
+        "plate_number": "سيارة ربع نقل سنجل ",
+        "car_name": "5",
+        "status": "Active",
+        "driver": "جابر سيد"
+      },
+      {
+        "id": "ba36f19e-fd99-4d79-9a90-4ef1980e407a",
+        "plate_number": "سيارة ربع نقل سنجل ",
+        "car_name": "6",
+        "status": "Active",
+        "driver": "خالد حامد"
+      },
+      {
+        "id": "30e0b30f-7e8c-4b36-840a-ecbd62cee684",
+        "plate_number": "000",
+        "car_name": "",
+        "status": "Active",
+        "driver": ""
+      },
+      {
+        "id": "fb8d5f7a-61ac-48d9-aa07-a6c17ca5871a",
+        "plate_number": "000",
+        "car_name": "",
+        "status": "Active",
+        "driver": ""
+      },
+      {
+        "id": "c9a1247e-9ebc-4c1b-9ed5-a2608eca5600",
+        "plate_number": "000",
+        "car_name": "",
+        "status": "Active",
+        "driver": ""
+      },
+      {
+        "id": "757eed92-00f3-402b-977d-24b88b9a2a65",
+        "plate_number": "000",
+        "car_name": "",
+        "status": "Active",
+        "driver": ""
+      }
+    ]
+  },
+  "housingSummary": {
+    "unitsTotal": 5,
+    "assignmentsTotal": 21,
+    "sampleUnits": [
+      {
+        "id": 21,
+        "unit_name": "شقة 1",
+        "status": "Fully Occupied",
+        "capacity": 3
+      },
+      {
+        "id": 22,
+        "unit_name": "Unknown Unit",
+        "status": "Fully Occupied",
+        "capacity": 10
+      },
+      {
+        "id": 25,
+        "unit_name": "شقة 10",
+        "status": "Available",
+        "capacity": 0
+      },
+      {
+        "id": 24,
+        "unit_name": "شقة 5",
+        "status": "Available",
+        "capacity": 1
+      },
+      {
+        "id": 23,
+        "unit_name": "شقة 3",
+        "status": "Partial",
+        "capacity": 5
+      }
+    ]
+  },
+  "attendanceSummary": {
+    "total": 1243,
+    "logsTotal": 170
+  },
+  "recruitmentOpsSummary": {
+    "applicantsTotal": 94,
+    "onboardingQueueTotal": 1
+  },
+  "emptyTables": [
+    "site_admin_tasks",
+    "nexus_tasks",
+    "assets",
+    "documents"
+  ],
+  "warnings": []
+}
