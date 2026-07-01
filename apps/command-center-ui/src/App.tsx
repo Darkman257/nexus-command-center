@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import { checkOmegaStatus } from '../../../packages/connectors/src/omegaConnector';
 import type { SystemStatus } from '../../../packages/shared-types/src/systemStatus';
@@ -65,7 +65,13 @@ export function App() {
   const [brainOpen, setBrainOpen] = useState(false);
 
   // New UI/UX Layout States
-  const [activeLauncherItem, setActiveLauncherItem] = useState<string | null>(null);
+  const [activeLauncherItem, setActiveLauncherItem] = useState<string | null>(() => {
+    try {
+      return window.location.pathname === '/runtime-services' ? 'runtime-services' : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Ask NOVA bridge — called from SystemGraph3D
   const navigateToNova = (prompt: string) => {
@@ -73,11 +79,11 @@ export function App() {
     setActiveLauncherItem('nova');
   };
 
-  const appendLog = (msg: string, type: LogMessage['type'] = 'info') => {
+  const appendLog = useCallback((msg: string, type: LogMessage['type'] = 'info') => {
     console.log(`[SYSTEM LOG - ${type.toUpperCase()}] ${msg}`);
-  };
+  }, []);
 
-  const callBridgeAPI = async (endpoint: string, method = 'GET', body?: unknown) => {
+  const callBridgeAPI = useCallback(async (endpoint: string, method = 'GET', body?: unknown) => {
     try {
       const res = await fetch(`http://localhost:5057/api/${endpoint}`, {
         method,
@@ -93,9 +99,9 @@ export function App() {
       console.warn(`Bridge call failed [${endpoint}]:`, err);
     }
     return null;
-  };
+  }, []);
 
-  const fetchOmegaHealth = async () => {
+  const fetchOmegaHealth = useCallback(async () => {
     // Omega health
     const result = await checkOmegaStatus();
     setOmegaStatus(result);
@@ -158,32 +164,22 @@ export function App() {
     }
 
     appendLog(`Omega: ${result.status.toUpperCase()} ${result.responseMs != null ? `(${result.responseMs}ms)` : '(unreachable)'}`, result.status === 'online' ? 'info' : 'alert');
-  };
+  }, [callBridgeAPI, appendLog]);
 
-  // Clock & Runtime Feed Loop
+  // Clock & Runtime Feed Loop + Telemetry Poll
   useEffect(() => {
     fetchOmegaHealth();
     
     // Start local operational event nervous system feed
     mockRuntimeFeed.start(6000);
     
+    const id = setInterval(fetchOmegaHealth, 15000);
+    
     return () => {
       mockRuntimeFeed.stop();
+      clearInterval(id);
     };
-  }, []);
-
-  // 15s telemetry poll
-  useEffect(() => {
-    const id = setInterval(fetchOmegaHealth, 15000);
-    return () => clearInterval(id);
-  }, []);
-
-  // Hidden route for technical control
-  useEffect(() => {
-    if (window.location.pathname === '/runtime-services') {
-      setActiveLauncherItem('runtime-services');
-    }
-  }, []);
+  }, [fetchOmegaHealth]);
 
   // Build alerts list
   const alerts: { msg: string; type: 'warn' | 'critical' | 'ok' }[] = [];
