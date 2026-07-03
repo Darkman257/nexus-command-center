@@ -14,11 +14,78 @@ import { globalCommandBus } from './commands/CommandBus';
 import { globalEventBroker } from './event-bus/LocalEventBroker';
 import { globalMemoryRepository } from './memory/MemoryRepository';
 import { globalAgentRegistry } from './agents/AgentRegistry';
+import { globalProjectionEngine } from './projections/ProjectionEngine';
+import { globalDecisionEngine } from './decision-engine/DecisionEngine';
 
 dotenv.config();
 
 // Initialize registrations
 registerAllCommands();
+
+// Event-Sourced Bootstrapper
+async function bootstrapEventStore() {
+  const eventsFile = path.join(__dirname, '..', 'data', 'nexus-events.jsonl');
+  if (fs.existsSync(eventsFile) && fs.readFileSync(eventsFile, 'utf8').trim()) {
+    console.log('Event store contains events. Performing Projection Engine replay...');
+    await globalProjectionEngine.replay();
+    return;
+  }
+
+  console.log('Event store is empty. Bootstrapping seed events...');
+  const seedSrcDir = path.join(__dirname, '..', '..', 'command-center-ui', 'runtime', 'memory-kernel');
+
+  const publishSeedEvents = async (filename: string, eventType: string) => {
+    const srcFile = path.join(seedSrcDir, filename);
+    if (fs.existsSync(srcFile)) {
+      try {
+        const content = fs.readFileSync(srcFile, 'utf8');
+        const items = JSON.parse(content);
+        if (Array.isArray(items)) {
+          for (const item of items) {
+            let entityId = item.id;
+            if (!entityId && item.from && item.to) {
+              entityId = `${item.from}_${item.to}`;
+            }
+            const entityName = item.name || item.title || item.relation || 'Seed';
+            const entityType = item.type || (item.from ? 'relationship' : 'seed');
+
+            await globalEventBroker.publish({
+              workspace: 'system',
+              source: 'bootstrap',
+              type: eventType,
+              entity: {
+                type: entityType,
+                id: String(entityId),
+                name: entityName,
+              },
+              payload: item,
+              severity: 'info',
+              correlationId: 'bootstrap-corr-id',
+              version: 1,
+              metadata: {
+                environment: 'local',
+                tenantId: 'default-tenant',
+                sessionId: 'bootstrap-session',
+                traceId: 'bootstrap-trace-id',
+              }
+            });
+          }
+        }
+      } catch (err: any) {
+        console.error(`Failed to publish bootstrap seed for ${filename}:`, err.message);
+      }
+    }
+  };
+
+  await publishSeedEvents('entities.json', 'EntityCreated');
+  await publishSeedEvents('relationships.json', 'RelationshipCreated');
+  await publishSeedEvents('timeline.json', 'TimelineMilestoneCreated');
+
+  // Trigger Projection Engine Replay to build the Read Models (Memory Kernel)
+  await globalProjectionEngine.replay();
+}
+
+bootstrapEventStore().catch(err => console.error('Bootstrap Error:', err));
 
 const app = express();
 const port = parseInt(process.env.OMEGA_BRIDGE_PORT || '5057', 10);
@@ -820,6 +887,24 @@ app.post('/api/memory/kernel', (req, res) => {
     res.json({ status: 'SUCCESS' });
   } catch (err: any) {
     res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/recommendations', (req, res) => {
+  try {
+    const recommendations = globalDecisionEngine.evaluate();
+    res.json(recommendations);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/projections/replay', async (req, res) => {
+  try {
+    await globalProjectionEngine.replay();
+    res.json({ status: 'SUCCESS' });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
   }
 });
 

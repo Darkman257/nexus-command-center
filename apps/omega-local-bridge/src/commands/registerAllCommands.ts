@@ -16,16 +16,6 @@ export function registerAllCommands() {
       const vehicle = entities.find(e => e.id === payload.vehicleId);
       const currentVersion = vehicle && vehicle.version !== undefined ? Number(vehicle.version) : 1;
 
-      const updatedVehicle = {
-        id: payload.vehicleId,
-        type: 'vehicle',
-        name: vehicle?.name || 'Vehicle',
-        driver: payload.driverName,
-        version: currentVersion + 1,
-      };
-
-      globalMemoryRepository.saveEntity(updatedVehicle);
-
       return {
         type: 'DriverAssigned',
         entityType: 'vehicle',
@@ -51,16 +41,6 @@ export function registerAllCommands() {
       const entities = globalMemoryRepository.getEntities();
       const candidate = entities.find(e => e.id === payload.candidateId);
       const currentVersion = candidate && candidate.version !== undefined ? Number(candidate.version) : 1;
-
-      const updatedCandidate = {
-        id: payload.candidateId,
-        type: 'candidate',
-        name: payload.candidateName,
-        status: 'Approved',
-        version: currentVersion + 1,
-      };
-
-      globalMemoryRepository.saveEntity(updatedCandidate);
 
       return {
         type: 'CandidateApproved',

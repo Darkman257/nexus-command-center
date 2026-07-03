@@ -4,6 +4,7 @@ import { systemClock } from '../utils/SystemClock';
 import { globalCommandRegistry } from './CommandRegistry';
 import { globalEventBroker } from '../event-bus/LocalEventBroker';
 import { globalMemoryRepository } from '../memory/MemoryRepository';
+import { globalProjectionEngine } from '../projections/ProjectionEngine';
 import type { NexusCommand, CommandAuditRecord } from './CommandContracts';
 
 export class CommandBus {
@@ -105,7 +106,7 @@ export class CommandBus {
       const entityType = payload.vehicleId ? 'vehicle' : payload.candidateId ? 'candidate' : 'generic';
       const entityName = (payload.driverName || payload.candidateName || payload.name || entityId || 'unknown') as string;
 
-      await globalEventBroker.publish({
+      const publishedEvent = await globalEventBroker.publish({
         workspace: command.workspace,
         source: eventSource,
         type: eventType,
@@ -120,6 +121,9 @@ export class CommandBus {
         version: 1,
         metadata: eventMetadata,
       });
+
+      // Synchronously project into Memory Repository (Read Model)
+      await globalProjectionEngine.project(publishedEvent);
 
       // 7. Audit Succeeded & Cache executed Command ID
       this.executedCommandIds.add(commandId);

@@ -13,8 +13,6 @@ export class MemoryRepository {
         fs.mkdirSync(p, { recursive: true });
       }
     });
-
-    this.bootstrapFromSeed();
   }
 
   private readAll<T>(subDir: string): T[] {
@@ -61,39 +59,6 @@ export class MemoryRepository {
   getFacts(): any[] { return this.readAll('facts'); }
   saveFact(fact: any) { this.saveOne('facts', `${fact.id}.json`, fact); }
 
-  private bootstrapFromSeed() {
-    // Check if entities directory is empty
-    const entitiesPath = path.join(this.baseDir, 'entities');
-    const existingEntities = fs.readdirSync(entitiesPath);
-    if (existingEntities.length > 0) {
-      return; // Already bootstrapped
-    }
-
-    console.log('Bootstrapping Memory Repository from static frontend seeds...');
-    const seedSrcDir = path.join(__dirname, '..', '..', '..', 'command-center-ui', 'runtime', 'memory-kernel');
-
-    const copySeed = (filename: string, subDir: string, keyFunc: (item: any) => string) => {
-      const srcFile = path.join(seedSrcDir, filename);
-      if (fs.existsSync(srcFile)) {
-        try {
-          const content = fs.readFileSync(srcFile, 'utf8');
-          const items = JSON.parse(content);
-          if (Array.isArray(items)) {
-            items.forEach(item => {
-              const fname = keyFunc(item);
-              this.saveOne(subDir, fname, item);
-            });
-          }
-        } catch (err) {
-          console.error(`Failed to bootstrap memory seed for ${filename}:`, err);
-        }
-      }
-    };
-
-    copySeed('entities.json', 'entities', (item) => `${item.id}.json`);
-    copySeed('relationships.json', 'relationships', (item) => `${item.from}_${item.to}.json`);
-    copySeed('timeline.json', 'timeline', (item) => `${item.id}.json`);
-  }
 }
 
 export const globalMemoryRepository = new MemoryRepository();
