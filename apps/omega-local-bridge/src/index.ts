@@ -16,6 +16,7 @@ import { globalMemoryRepository } from './memory/MemoryRepository';
 import { globalAgentRegistry } from './agents/AgentRegistry';
 import { globalProjectionEngine } from './projections/ProjectionEngine';
 import { globalDecisionEngine } from './decision-engine/DecisionEngine';
+import { globalNotificationService } from './notifications/NotificationService';
 
 dotenv.config();
 
@@ -907,6 +908,281 @@ app.post('/api/projections/replay', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// SSE Notifications Stream
+app.get('/api/notifications/stream', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.flushHeaders();
+
+  globalNotificationService.registerClient(res);
+});
+
+// Malik Natural Language Command Chat
+app.post('/api/malik/chat', express.json(), async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) throw new Error('message is required');
+
+    const aiResStr = await callOllama(message, MALIK_SYSTEM_PROMPT);
+    try {
+      const aiData = JSON.parse(aiResStr);
+      if (aiData.command && aiData.payload) {
+        const cmdResult = await globalCommandBus.dispatch({
+          commandId: `cmd_mk_${Math.random().toString(36).substring(2, 9)}`,
+          type: aiData.command,
+          issuedBy: 'malik_assistant',
+          workspace: 'system',
+          timestamp: new Date().toISOString(),
+          payload: aiData.payload
+        });
+        return res.json({
+          ok: true,
+          reply: `✅ تم تنفيذ الأمر بنجاح!\nالأمر: ${aiData.command}\nالبيانات المستخرجة: ${JSON.stringify(aiData.payload)}`,
+          actions: [{ label: `عرض ${aiData.command}`, command: aiData.command, payload: aiData.payload }]
+        });
+      } else {
+        return res.json({ ok: true, reply: aiData.reply || aiResStr });
+      }
+    } catch {
+      return res.json({ ok: true, reply: aiResStr });
+    }
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Malik PDF Uploader (Receives raw application/pdf binary stream)
+app.post('/api/malik/upload-pdf', express.raw({ type: 'application/pdf', limit: '10mb' }), async (req, res) => {
+  try {
+    if (!req.body || req.body.length === 0) throw new Error('Empty PDF file body');
+
+    const tempFile = path.join(__dirname, '..', 'data', `upload_${Date.now()}.pdf`);
+    fs.writeFileSync(tempFile, req.body);
+
+    const scriptPath = path.join(__dirname, '..', 'scripts', 'parse_pdf.py');
+    const { stdout } = await execAsync(`python "${scriptPath}" "${tempFile}"`);
+
+    if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+
+    const aiResStr = await callOllama(stdout, MALIK_SYSTEM_PROMPT);
+    try {
+      const aiData = JSON.parse(aiResStr);
+      if (aiData.command && aiData.payload) {
+        await globalCommandBus.dispatch({
+          commandId: `cmd_pdf_${Math.random().toString(36).substring(2, 9)}`,
+          type: aiData.command,
+          issuedBy: 'malik_pdf_intake',
+          workspace: 'system',
+          timestamp: new Date().toISOString(),
+          payload: aiData.payload
+        });
+        return res.json({
+          ok: true,
+          reply: `✅ تم معالجة ملف الـ PDF المرفوع بنجاح واستخراج العقد!\nالأمر المنفذ: ${aiData.command}\nالبيانات: ${JSON.stringify(aiData.payload)}`,
+          actions: [{ label: `عرض ${aiData.command}`, command: aiData.command, payload: aiData.payload }]
+        });
+      } else {
+        return res.json({
+          ok: true,
+          reply: `📄 استخراج نص الـ PDF:\n${stdout.substring(0, 300)}...\n\nلم أستطع استنباط أمر تنفيذي واضح من هذا المستند.`,
+        });
+      }
+    } catch {
+      return res.json({ ok: true, reply: aiResStr });
+    }
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Malik Telegram Webhook
+app.post('/api/malik/telegram-webhook', express.json(), async (req, res) => {
+  try {
+    const { message } = req.body;
+    if (!message) return res.sendStatus(200);
+
+    const chatId = message.chat.id;
+    const text = message.text || '';
+    const document = message.document;
+
+    let responseText = '';
+
+    if (document && document.mime_type === 'application/pdf') {
+      const fileId = document.file_id;
+      const token = process.env.TELEGRAM_BOT_TOKEN || 'YOUR_BOT_TOKEN';
+      const fileRes = await fetch(`https://api.telegram.org/bot${token}/getFile?file_id=${fileId}`);
+      if (fileRes.ok) {
+        const fileData = await fileRes.json() as any;
+        const filePath = fileData.result?.file_path;
+        if (filePath) {
+          const downloadUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
+          const pdfRes = await fetch(downloadUrl);
+          if (pdfRes.ok) {
+            const buffer = Buffer.from(await pdfRes.arrayBuffer());
+            const tempFile = path.join(__dirname, '..', 'data', `telegram_${Date.now()}.pdf`);
+            fs.writeFileSync(tempFile, buffer);
+
+            const scriptPath = path.join(__dirname, '..', 'scripts', 'parse_pdf.py');
+            const { stdout } = await execAsync(`python "${scriptPath}" "${tempFile}"`);
+
+            if (fs.existsSync(tempFile)) fs.unlinkSync(tempFile);
+
+            const aiResStr = await callOllama(stdout, MALIK_SYSTEM_PROMPT);
+            try {
+              const aiData = JSON.parse(aiResStr);
+              if (aiData.command && aiData.payload) {
+                await globalCommandBus.dispatch({
+                  commandId: `cmd_tg_${Math.random().toString(36).substring(2, 9)}`,
+                  type: aiData.command,
+                  issuedBy: `telegram_${message.from?.username || message.from?.id}`,
+                  workspace: 'system',
+                  timestamp: new Date().toISOString(),
+                  payload: aiData.payload
+                });
+                responseText = `✅ تم استلام ملف الـ PDF واستخراج البيانات بنجاح!\nالأمر المنفذ: ${aiData.command}\nالبيانات: ${JSON.stringify(aiData.payload)}`;
+              } else {
+                responseText = `📄 استخراج نص الـ PDF:\n${stdout.substring(0, 300)}...\n\nلم أستطع تحويل هذا النص إلى أمر تنفيذي.`;
+              }
+            } catch {
+              responseText = `📄 تم قراءة الملف بنجاح! الرد:\n${aiResStr}`;
+            }
+          }
+        }
+      }
+    } else if (text) {
+      const aiResStr = await callOllama(text, MALIK_SYSTEM_PROMPT);
+      try {
+        const aiData = JSON.parse(aiResStr);
+        if (aiData.command && aiData.payload) {
+          await globalCommandBus.dispatch({
+            commandId: `cmd_tg_${Math.random().toString(36).substring(2, 9)}`,
+            type: aiData.command,
+            issuedBy: `telegram_${message.from?.username || message.from?.id}`,
+            workspace: 'system',
+            timestamp: new Date().toISOString(),
+            payload: aiData.payload
+          });
+          responseText = `✅ تم تنفيذ الأمر بنجاح!\nالنوع: ${aiData.command}\nالبيانات: ${JSON.stringify(aiData.payload)}`;
+        } else {
+          responseText = aiData.reply || aiResStr;
+        }
+      } catch {
+        responseText = aiResStr;
+      }
+    } else {
+      responseText = 'أهلاً بك! يرجى إرسال رسالة نصية أو ملف PDF.';
+    }
+
+    const token = process.env.TELEGRAM_BOT_TOKEN || 'YOUR_BOT_TOKEN';
+    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text: responseText })
+    }).catch(() => null);
+
+    res.sendStatus(200);
+  } catch (err: any) {
+    console.error('Telegram webhook error:', err.message);
+    res.sendStatus(200);
+  }
+});
+
+// Helper for Ollama Chat calling
+async function callOllama(prompt: string, system: string): Promise<string> {
+  try {
+    const res = await fetch('http://127.0.0.1:11434/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'llama3',
+        messages: [
+          { role: 'system', content: system },
+          { role: 'user', content: prompt }
+        ],
+        options: { temperature: 0.1 },
+        stream: false
+      })
+    });
+    if (!res.ok) throw new Error(`Ollama HTTP Error: ${res.status}`);
+    const data = await res.json() as any;
+    return data.message?.content || '';
+  } catch (err) {
+    console.warn('Ollama offline, falling back to regex command extraction...', err);
+    return mockParseIntent(prompt);
+  }
+}
+
+// System Prompt constant
+const MALIK_SYSTEM_PROMPT = `You are Malik, the operations assistant. You receive natural language requests from company operators and map them to structured system commands.
+Supported commands and their payload schema:
+1. AssignDriver:
+   { "vehicleId": "string", "driverName": "string" }
+2. RegisterVehicle:
+   { "vehicleId": "string", "name": "string", "driver": "string" }
+3. CreateTask:
+   { "title": "string", "description": "string" }
+4. ApproveCandidate:
+   { "candidateId": "string", "candidateName": "string" }
+
+Analyze the user's message and determine if it maps to any of these commands.
+If it does, output ONLY a JSON object of this structure:
+{
+  "command": "AssignDriver" | "RegisterVehicle" | "CreateTask" | "ApproveCandidate",
+  "payload": { ... }
+}
+If it does NOT map to any command, output a helpful reply directly.
+Do NOT wrap the JSON in markdown code blocks. Output raw JSON only.`;
+
+// Regex mock parser for safety
+function mockParseIntent(query: string): string {
+  const q = query.toLowerCase();
+  
+  if (q.includes('سجل سيارة') || q.includes('سجل عربية') || q.includes('register vehicle') || q.includes('car')) {
+    const vehIdMatch = query.match(/(veh-\d+|\w+\s*\d+)/);
+    const vehId = vehIdMatch ? vehIdMatch[0].replace(/\s+/g, '') : 'veh_' + Math.floor(Math.random() * 1000);
+    const driverMatch = query.match(/(سائقها|سائق|driver)\s+([\u0600-\u06FF\w\s]+)/);
+    const driver = driverMatch ? driverMatch[2].trim() : '';
+    return JSON.stringify({
+      command: 'RegisterVehicle',
+      payload: { vehicleId: vehId, name: 'Vehicle ' + vehId, driver }
+    });
+  }
+
+  if (q.includes('عين') || q.includes('عيّن') || q.includes('سواق') || q.includes('assign driver')) {
+    const vehIdMatch = query.match(/(veh-\d+|\w+\s*\d+)/);
+    const vehId = vehIdMatch ? vehIdMatch[0].replace(/\s+/g, '') : 'veh-1';
+    const driverMatch = query.match(/(لسائق|سواق|سائق|driver)\s+([\u0600-\u06FF\w\s]+)/);
+    const driver = driverMatch ? driverMatch[2].trim() : 'Ahmed Ali';
+    return JSON.stringify({
+      command: 'AssignDriver',
+      payload: { vehicleId: vehId, driverName: driver }
+    });
+  }
+
+  if (q.includes('تاسك') || q.includes('سجل مهمة') || q.includes('مهمه') || q.includes('task')) {
+    const titleMatch = query.match(/(مهمة|مهمه|مهمة جديدة|task)\s+([\u0600-\u06FF\w\s\-:]+)/);
+    const title = titleMatch ? titleMatch[2].trim() : 'New Operational Task';
+    return JSON.stringify({
+      command: 'CreateTask',
+      payload: { title, description: 'Created via Malik assistant' }
+    });
+  }
+
+  if (q.includes('وافق') || q.includes('approve candidate') || q.includes('موافقة')) {
+    const candIdMatch = query.match(/(cand-\w+|\w+)/);
+    const candId = candIdMatch ? candIdMatch[0] : 'cand-1';
+    return JSON.stringify({
+      command: 'ApproveCandidate',
+      payload: { candidateId: candId, candidateName: 'Candidate Name' }
+    });
+  }
+
+  return JSON.stringify({
+    reply: "أهلاً بك! أنا مالك، مساعد العمليات الذكي. لم أستطع استخراج أمر تنفيذي واضح من رسالتك. يمكنك كتابة 'سجل مهمة...' أو 'عين السائق...'"
+  });
+}
 
 app.listen(port, host, () => {
   console.log(`Omega Local Bridge running at http://${host}:${port}`);

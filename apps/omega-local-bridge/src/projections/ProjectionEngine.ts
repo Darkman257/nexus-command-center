@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { globalMemoryRepository } from '../memory/MemoryRepository';
+import { globalNotificationService } from '../notifications/NotificationService';
 import type { NexusEvent } from '../event-bus/EventContracts';
 
 export class ProjectionEngine {
@@ -43,6 +44,23 @@ export class ProjectionEngine {
           globalMemoryRepository.saveFact(payload);
           break;
 
+        case 'VehicleRegistered': {
+          const vehicleId = String(payload.vehicleId);
+          const name = String(payload.name);
+          const driver = String(payload.driver || '');
+          const version = payload.version !== undefined ? Number(payload.version) : 1;
+
+          const vehicle = {
+            id: vehicleId,
+            type: 'vehicle',
+            name: name,
+            driver: driver,
+            version: version,
+          };
+          globalMemoryRepository.saveEntity(vehicle);
+          break;
+        }
+
         case 'DriverAssigned': {
           const vehicleId = String(payload.vehicleId);
           const driverName = String(payload.driverName);
@@ -82,6 +100,10 @@ export class ProjectionEngine {
           console.log(`Projection Engine: Ignoring unmapped event type "${type}"`);
           break;
       }
+
+      // Broadcast event to all SSE notification clients dynamically in real-time
+      globalNotificationService.broadcast(event);
+
     } catch (err: any) {
       console.error(`Projection Engine: Failed to project event ${event.id} of type ${type}:`, err.message);
       throw err;

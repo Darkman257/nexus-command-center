@@ -56,4 +56,51 @@ export function registerAllCommands() {
       };
     }
   );
+
+  // 3. RegisterVehicle Command
+  globalCommandRegistry.register(
+    'RegisterVehicle',
+    (payload) => {
+      if (!payload.vehicleId) throw new Error('vehicleId is required');
+      if (!payload.name) throw new Error('name is required');
+    },
+    async (payload) => {
+      return {
+        type: 'VehicleRegistered',
+        entityType: 'vehicle',
+        entityId: payload.vehicleId,
+        entityName: payload.name,
+        payload: {
+          vehicleId: payload.vehicleId,
+          name: payload.name,
+          driver: payload.driver || '',
+          version: 1
+        }
+      };
+    }
+  );
+
+  // 4. CreateTask Command
+  globalCommandRegistry.register(
+    'CreateTask',
+    (payload) => {
+      if (!payload.title) throw new Error('title is required');
+    },
+    async (payload) => {
+      const taskId = payload.taskId || `task_${Math.random().toString(36).substring(2, 9)}`;
+      return {
+        type: 'TaskCreated',
+        entityType: 'task',
+        entityId: taskId,
+        entityName: payload.title,
+        payload: {
+          id: taskId,
+          title: payload.title,
+          description: payload.description || '',
+          status: payload.status || 'Pending',
+          version: 1
+        }
+      };
+    }
+  );
 }
