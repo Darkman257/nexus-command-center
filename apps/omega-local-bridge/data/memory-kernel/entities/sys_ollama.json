@@ -1,0 +1,6 @@
+{
+  "id": "sys_ollama",
+  "type": "system",
+  "name": "Ollama",
+  "role": "Local LLM Provider"
+}

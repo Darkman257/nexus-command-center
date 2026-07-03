@@ -1,0 +1,11 @@
+{
+  "id": "t4",
+  "date": "2026-05",
+  "title": "3D System Graph creation",
+  "type": "milestone",
+  "summary": "Created a 3D visualization of the NEXUS topology.",
+  "relatedEntities": [
+    "sys_nexus"
+  ],
+  "importance": "medium"
+}

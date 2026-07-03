@@ -1,0 +1,11 @@
+{
+  "id": "t7",
+  "date": "2026-05",
+  "title": "Daily launcher stabilization",
+  "type": "milestone",
+  "summary": "Ensured services reliably spin up with correct dependencies.",
+  "relatedEntities": [
+    "sys_nexus"
+  ],
+  "importance": "high"
+}

@@ -8,7 +8,17 @@ import util from 'util';
 import fs from 'fs';
 import path from 'path';
 
+// Event-Sourced & CQRS Architecture Modules
+import { registerAllCommands } from './commands/registerAllCommands';
+import { globalCommandBus } from './commands/CommandBus';
+import { globalEventBroker } from './event-bus/LocalEventBroker';
+import { globalMemoryRepository } from './memory/MemoryRepository';
+import { globalAgentRegistry } from './agents/AgentRegistry';
+
 dotenv.config();
+
+// Initialize registrations
+registerAllCommands();
 
 const app = express();
 const port = parseInt(process.env.OMEGA_BRIDGE_PORT || '5057', 10);
@@ -716,6 +726,101 @@ app.get('/api/git-check', async (req, res) => {
   }
   res.setHeader('Content-Type', 'text/plain');
   res.end(output);
+});
+
+// ─── Event-Sourced & CQRS Endpoints ──────────────────────────────────────────
+
+app.post('/api/commands', async (req, res) => {
+  try {
+    const result = await globalCommandBus.dispatch(req.body);
+    res.json(result);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/events/history', async (req, res) => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 50;
+    const since = req.query.since as string | undefined;
+    const events = await globalEventBroker.getHistory(limit, since);
+    res.json(events);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/agents/register', (req, res) => {
+  try {
+    const agent = globalAgentRegistry.register(req.body);
+    res.json(agent);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.post('/api/agents/heartbeat', (req, res) => {
+  try {
+    const { id } = req.body;
+    const agent = globalAgentRegistry.heartbeat(id);
+    res.json(agent);
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.get('/api/agents', (req, res) => {
+  try {
+    const agents = globalAgentRegistry.getAgents();
+    res.json(agents);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/memory/kernel', (req, res) => {
+  try {
+    const domain = req.query.domain as string | undefined;
+    if (domain === 'entities') return res.json(globalMemoryRepository.getEntities());
+    if (domain === 'relationships') return res.json(globalMemoryRepository.getRelationships());
+    if (domain === 'timeline') return res.json(globalMemoryRepository.getTimeline());
+    if (domain === 'policies') return res.json(globalMemoryRepository.getPolicies());
+    if (domain === 'decisions') return res.json(globalMemoryRepository.getDecisions());
+    if (domain === 'tasks') return res.json(globalMemoryRepository.getTasks());
+    if (domain === 'facts') return res.json(globalMemoryRepository.getFacts());
+
+    res.json({
+      entities: globalMemoryRepository.getEntities(),
+      relationships: globalMemoryRepository.getRelationships(),
+      timeline: globalMemoryRepository.getTimeline(),
+      policies: globalMemoryRepository.getPolicies(),
+      decisions: globalMemoryRepository.getDecisions(),
+      tasks: globalMemoryRepository.getTasks(),
+      facts: globalMemoryRepository.getFacts(),
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/memory/kernel', (req, res) => {
+  try {
+    const { domain, data } = req.body;
+    if (!domain || !data) throw new Error('domain and data are required');
+
+    if (domain === 'entities') globalMemoryRepository.saveEntity(data);
+    else if (domain === 'relationships') globalMemoryRepository.saveRelationship(data);
+    else if (domain === 'timeline') globalMemoryRepository.saveTimeline(data);
+    else if (domain === 'policies') globalMemoryRepository.savePolicy(data);
+    else if (domain === 'decisions') globalMemoryRepository.saveDecision(data);
+    else if (domain === 'tasks') globalMemoryRepository.saveTask(data);
+    else if (domain === 'facts') globalMemoryRepository.saveFact(data);
+    else throw new Error(`Unknown memory domain: ${domain}`);
+
+    res.json({ status: 'SUCCESS' });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 app.listen(port, host, () => {

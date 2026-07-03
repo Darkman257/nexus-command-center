@@ -1,0 +1,12 @@
+{
+  "id": "t6",
+  "date": "2026-05",
+  "title": "Bridge 5057 recovery",
+  "type": "milestone",
+  "summary": "Recovered the local read-only bridge for Omega dashboard.",
+  "relatedEntities": [
+    "sys_bridge",
+    "sys_omega"
+  ],
+  "importance": "high"
+}

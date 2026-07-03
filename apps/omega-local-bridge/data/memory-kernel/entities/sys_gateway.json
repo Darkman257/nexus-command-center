@@ -1,0 +1,6 @@
+{
+  "id": "sys_gateway",
+  "type": "system",
+  "name": "Omega Gateway",
+  "role": "API Server for Omega"
+}

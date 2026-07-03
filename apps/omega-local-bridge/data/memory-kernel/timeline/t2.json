@@ -1,0 +1,11 @@
+{
+  "id": "t2",
+  "date": "2026-05",
+  "title": "Docker recovery",
+  "type": "milestone",
+  "summary": "Restored Docker services.",
+  "relatedEntities": [
+    "sys_nexus"
+  ],
+  "importance": "high"
+}

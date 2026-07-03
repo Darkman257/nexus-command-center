@@ -1,0 +1,8 @@
+{
+  "from": "proj_nexus",
+  "to": "proj_recruit",
+  "relation": "contains",
+  "confidence": 1,
+  "source": "system",
+  "createdAt": "2026-05-31T00:00:00Z"
+}

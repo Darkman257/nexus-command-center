@@ -1,0 +1,8 @@
+{
+  "from": "p_moh",
+  "to": "p_nova",
+  "relation": "creator / manager",
+  "confidence": 1,
+  "source": "system",
+  "createdAt": "2026-05-31T00:00:00Z"
+}

@@ -1,0 +1,11 @@
+{
+  "id": "t3",
+  "date": "2026-05",
+  "title": "Command Center stabilization",
+  "type": "milestone",
+  "summary": "Stabilized the daily launcher for operational UI.",
+  "relatedEntities": [
+    "sys_nexus"
+  ],
+  "importance": "critical"
+}

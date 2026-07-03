@@ -1,0 +1,11 @@
+{
+  "id": "t1",
+  "date": "2026-05",
+  "title": "WSL2 recovery",
+  "type": "milestone",
+  "summary": "Recovered WSL2 environment for local development.",
+  "relatedEntities": [
+    "sys_nexus"
+  ],
+  "importance": "high"
+}

@@ -1,0 +1,6 @@
+{
+  "id": "sys_bridge",
+  "type": "system",
+  "name": "Omega Local Bridge",
+  "role": "Read-Only Data Bridge"
+}

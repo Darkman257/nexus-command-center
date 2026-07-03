@@ -1,0 +1,12 @@
+{
+  "id": "t5",
+  "date": "2026-05",
+  "title": "NOVA Unified Command Interface",
+  "type": "milestone",
+  "summary": "Implemented chat-based execution and intelligence via NOVA.",
+  "relatedEntities": [
+    "p_nova",
+    "sys_nexus"
+  ],
+  "importance": "high"
+}
