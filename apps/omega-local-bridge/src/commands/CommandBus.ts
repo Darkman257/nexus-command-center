@@ -7,6 +7,12 @@ import { globalMemoryRepository } from '../memory/MemoryRepository';
 import { globalProjectionEngine } from '../projections/ProjectionEngine';
 import type { NexusCommand, CommandAuditRecord } from './CommandContracts';
 
+export function verifyResourceScope(issuerProjects: string[] | undefined, targetProjectId: string | undefined): boolean {
+  if (!targetProjectId) return true;
+  const projects = issuerProjects || [];
+  return projects.includes('admin') || projects.includes(targetProjectId);
+}
+
 export class CommandBus {
   private auditPath: string;
   private executedCommandIds: Set<string> = new Set();
@@ -68,6 +74,50 @@ export class CommandBus {
       validator(payload);
       this.logAudit({ commandId, command, status: 'Validated' });
 
+      // 3.5 Security / Permission RBAC Check (Global & Resource-Scoped)
+      const requiredScopes: Record<string, string[]> = {
+        'AssignDriver': ['fleet:write', 'admin'],
+        'RegisterVehicle': ['fleet:write', 'admin'],
+        'ApproveCandidate': ['recruitment:write', 'admin'],
+        'CreateTask': ['tasks:write', 'admin'],
+        'RegisterHousingUnit': ['housing:write', 'admin'],
+        'AssignStaffToUnit': ['housing:write', 'admin'],
+        'ReleaseStaffFromUnit': ['housing:write', 'admin'],
+      };
+
+      const commandScopes = requiredScopes[type];
+      if (commandScopes) {
+        const issuer = command.issuedBy || 'unknown';
+        
+        // 1. Global Scope Check
+        // Default scopes if not provided (e.g. system context or local boot)
+        const activeScopes = command.scopes || 
+          (issuer === 'system' || issuer === 'bootstrap' || issuer === 'admin' || issuer === 'nova-copilot' 
+            ? ['fleet:write', 'housing:write', 'recruitment:write', 'tasks:write', 'admin'] 
+            : issuer === 'sally' ? ['recruitment:write'] : []);
+        
+        const hasPermission = activeScopes.some(p => commandScopes.includes(p));
+        if (!hasPermission) {
+          const authError = `Security Violation: Unauthorized issuer "${issuer}" lacks scopes required for command "${type}".`;
+          this.logAudit({ commandId, command, status: 'Failed', reason: authError });
+          throw new Error(authError);
+        }
+
+        // 2. Resource-Scoped RBAC Check (Cross-Project Isolation)
+        const targetProjectId = (payload.projectId || payload.targetProjectId || payload.project_id) as string | undefined;
+        if (targetProjectId) {
+          const activeProjects = command.issuerProjects || 
+            (issuer === 'system' || issuer === 'bootstrap' || issuer === 'admin' ? ['admin'] : []);
+          
+          const hasProjectAccess = verifyResourceScope(activeProjects, String(targetProjectId));
+          if (!hasProjectAccess) {
+            const authError = `Security Violation: Access Denied. Issuer "${issuer}" is not authorized to modify resources in project "${targetProjectId}".`;
+            this.logAudit({ commandId, command, status: 'Failed', reason: authError });
+            throw new Error(authError);
+          }
+        }
+      }
+
       // 4. Optimistic Concurrency Check
       const entityId = (payload.vehicleId || payload.candidateId || payload.id) as string | undefined;
       if (entityId && expectedVersion !== undefined) {
@@ -92,38 +142,40 @@ export class CommandBus {
         expectedVersion,
       });
 
-      // 6. Publish resulting immutable event to Broker
-      const eventMetadata = {
-        environment: (process.env.NODE_ENV === 'production' ? 'production' : 'local') as 'local' | 'production',
-        tenantId: (payload.tenantId as string) || 'default-tenant',
-        sessionId: (payload.sessionId as string) || 'system-session',
-        traceId: `tr_${Math.random().toString(36).substring(2, 11)}`,
-      };
+      // 6. Publish resulting immutable event to Broker if returned by handler
+      if (eventParams) {
+        const eventMetadata = {
+          environment: (process.env.NODE_ENV === 'production' ? 'production' : 'local') as 'local' | 'production',
+          tenantId: (payload.tenantId as string) || 'default-tenant',
+          sessionId: (payload.sessionId as string) || 'system-session',
+          traceId: `tr_${Math.random().toString(36).substring(2, 11)}`,
+        };
 
-      const eventType = eventParams.type ? String(eventParams.type) : `${type}ed`;
-      const eventSource = command.issuedBy || 'command-bus';
+        const eventType = eventParams.type ? String(eventParams.type) : `${type}ed`;
+        const eventSource = command.issuedBy || 'command-bus';
 
-      const entityType = payload.vehicleId ? 'vehicle' : payload.candidateId ? 'candidate' : 'generic';
-      const entityName = (payload.driverName || payload.candidateName || payload.name || entityId || 'unknown') as string;
+        const entityType = payload.vehicleId ? 'vehicle' : payload.candidateId ? 'candidate' : 'generic';
+        const entityName = (payload.driverName || payload.candidateName || payload.name || entityId || 'unknown') as string;
 
-      const publishedEvent = await globalEventBroker.publish({
-        workspace: command.workspace,
-        source: eventSource,
-        type: eventType,
-        entity: {
-          type: String(eventParams.entityType || entityType),
-          id: String(eventParams.entityId || entityId || 'unknown'),
-          name: String(eventParams.entityName || entityName),
-        },
-        payload: eventParams.payload ? (eventParams.payload as Record<string, unknown>) : payload,
-        severity: (eventParams.severity as any) || 'info',
-        correlationId: commandId,
-        version: 1,
-        metadata: eventMetadata,
-      });
+        const publishedEvent = await globalEventBroker.publish({
+          workspace: command.workspace,
+          source: eventSource,
+          type: eventType,
+          entity: {
+            type: String(eventParams.entityType || entityType),
+            id: String(eventParams.entityId || entityId || 'unknown'),
+            name: String(eventParams.entityName || entityName),
+          },
+          payload: eventParams.payload ? (eventParams.payload as Record<string, unknown>) : payload,
+          severity: (eventParams.severity as any) || 'info',
+          correlationId: commandId,
+          version: 1,
+          metadata: eventMetadata,
+        });
 
-      // Synchronously project into Memory Repository (Read Model)
-      await globalProjectionEngine.project(publishedEvent);
+        // Synchronously project into Memory Repository (Read Model)
+        await globalProjectionEngine.project(publishedEvent);
+      }
 
       // 7. Audit Succeeded & Cache executed Command ID
       this.executedCommandIds.add(commandId);

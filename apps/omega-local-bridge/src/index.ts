@@ -15,8 +15,9 @@ import { globalEventBroker } from './event-bus/LocalEventBroker';
 import { globalMemoryRepository } from './memory/MemoryRepository';
 import { globalAgentRegistry } from './agents/AgentRegistry';
 import { globalProjectionEngine } from './projections/ProjectionEngine';
-import { globalDecisionEngine } from './decision-engine/DecisionEngine';
+import { globalReasoningEngine } from './platform/intelligence/ReasoningEngine';
 import { globalNotificationService } from './notifications/NotificationService';
+import { globalLifecycle } from './platform/lifecycle/KernelLifecycle';
 
 dotenv.config();
 
@@ -86,7 +87,9 @@ async function bootstrapEventStore() {
   await globalProjectionEngine.replay();
 }
 
-bootstrapEventStore().catch(err => console.error('Bootstrap Error:', err));
+bootstrapEventStore()
+  .then(() => globalLifecycle.boot())
+  .catch(err => console.error('Bootstrap Error:', err));
 
 const app = express();
 const port = parseInt(process.env.OMEGA_BRIDGE_PORT || '5057', 10);
@@ -893,7 +896,7 @@ app.post('/api/memory/kernel', (req, res) => {
 
 app.get('/api/recommendations', (req, res) => {
   try {
-    const recommendations = globalDecisionEngine.evaluate();
+    const recommendations = globalReasoningEngine.evaluateRecommendations();
     res.json(recommendations);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

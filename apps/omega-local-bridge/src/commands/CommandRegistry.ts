@@ -1,5 +1,5 @@
 export type CommandValidator = (payload: Record<string, unknown>) => void; // Throws an error if invalid
-export type CommandHandler = (payload: Record<string, unknown>, meta: { commandId: string; issuedBy: string; expectedVersion?: number }) => Promise<Record<string, unknown>>; // Executes logic, returns event payload parameters
+export type CommandHandler = (payload: Record<string, unknown>, meta: { commandId: string; issuedBy: string; expectedVersion?: number }) => Promise<Record<string, unknown> | null>; // Executes logic, returns event payload parameters or null if handled
 
 export class CommandRegistry {
   private validators: Record<string, CommandValidator> = {};

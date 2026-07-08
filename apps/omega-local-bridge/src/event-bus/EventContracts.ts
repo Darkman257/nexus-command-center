@@ -3,6 +3,8 @@ export interface EventMetadata {
   tenantId: string;
   sessionId: string;
   traceId: string;
+  signature?: string;
+  previousSignature?: string;
 }
 
 export interface EventEntity {

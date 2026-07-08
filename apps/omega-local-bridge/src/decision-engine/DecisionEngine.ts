@@ -1,5 +1,6 @@
 import { globalMemoryRepository } from '../memory/MemoryRepository';
 import { systemClock } from '../utils/SystemClock';
+import { logViolations } from './ComplianceLogger';
 
 export interface RecommendationAction {
   label: string;
@@ -73,6 +74,26 @@ export class DecisionEngine {
 
     return recommendations;
   }
+
+  /**
+   * Evaluates violations AND persists them to the compliance archive.
+   * Use this instead of evaluate() whenever a permanent audit record is needed.
+   */
+  async evaluateAndLog(
+    context: { projectId?: string; workspace?: string } = {}
+  ): Promise<Recommendation[]> {
+    const recommendations = this.evaluate();
+
+    if (recommendations.length > 0) {
+      // Fire-and-forget persistence — non-blocking
+      logViolations(recommendations, context).catch(err => {
+        console.error('[DecisionEngine] Failed to persist compliance log:', err);
+      });
+    }
+
+    return recommendations;
+  }
 }
 
 export const globalDecisionEngine = new DecisionEngine();
+

@@ -59,6 +59,16 @@ export class MemoryRepository {
   getFacts(): any[] { return this.readAll('facts'); }
   saveFact(fact: any) { this.saveOne('facts', `${fact.id}.json`, fact); }
 
+  deleteRelationship(id: string) {
+    const p = path.join(this.baseDir, 'relationships', `${id}.json`);
+    if (fs.existsSync(p)) {
+      try {
+        fs.unlinkSync(p);
+      } catch (err) {
+        console.error(`Failed to delete relationship file ${id}.json:`, err);
+      }
+    }
+  }
 }
 
 export const globalMemoryRepository = new MemoryRepository();

@@ -3,6 +3,10 @@ import * as path from 'path';
 import { globalMemoryRepository } from '../memory/MemoryRepository';
 import { globalNotificationService } from '../notifications/NotificationService';
 import type { NexusEvent } from '../event-bus/EventContracts';
+import { FleetProjection } from '../domains/fleet/projection/FleetProjection';
+import { RecruitmentProjection } from '../domains/recruitment/projection/RecruitmentProjection';
+import { TaskProjection } from '../domains/task/projection/TaskProjection';
+import { HousingProjection } from '../domains/housing/projection/HousingProjection';
 
 export class ProjectionEngine {
   private baseDir: string;
@@ -36,65 +40,35 @@ export class ProjectionEngine {
           globalMemoryRepository.saveDecision(payload);
           break;
 
+        case 'Task.TaskCreated':
         case 'TaskCreated':
-          globalMemoryRepository.saveTask(payload);
+          await TaskProjection.project(event);
           break;
 
         case 'FactCreated':
           globalMemoryRepository.saveFact(payload);
           break;
 
-        case 'VehicleRegistered': {
-          const vehicleId = String(payload.vehicleId);
-          const name = String(payload.name);
-          const driver = String(payload.driver || '');
-          const version = payload.version !== undefined ? Number(payload.version) : 1;
-
-          const vehicle = {
-            id: vehicleId,
-            type: 'vehicle',
-            name: name,
-            driver: driver,
-            version: version,
-          };
-          globalMemoryRepository.saveEntity(vehicle);
+        case 'Fleet.VehicleRegistered':
+        case 'VehicleRegistered':
+        case 'Fleet.DriverAssigned':
+        case 'DriverAssigned':
+          await FleetProjection.project(event);
           break;
-        }
 
-        case 'DriverAssigned': {
-          const vehicleId = String(payload.vehicleId);
-          const driverName = String(payload.driverName);
-          const newVersion = payload.newVersion !== undefined ? Number(payload.newVersion) : 1;
-
-          const entities = globalMemoryRepository.getEntities();
-          const vehicle = entities.find(e => e.id === vehicleId);
-          const updatedVehicle = {
-            id: vehicleId,
-            type: 'vehicle',
-            name: vehicle?.name || 'Vehicle',
-            driver: driverName,
-            version: newVersion,
-          };
-          globalMemoryRepository.saveEntity(updatedVehicle);
+        case 'Recruitment.CandidateApproved':
+        case 'CandidateApproved':
+          await RecruitmentProjection.project(event);
           break;
-        }
 
-        case 'CandidateApproved': {
-          const candidateId = String(payload.candidateId);
-          const candidateName = String(payload.candidateName);
-          const status = String(payload.status || 'Approved');
-          const newVersion = payload.newVersion !== undefined ? Number(payload.newVersion) : 1;
-
-          const updatedCandidate = {
-            id: candidateId,
-            type: 'candidate',
-            name: candidateName,
-            status: status,
-            version: newVersion,
-          };
-          globalMemoryRepository.saveEntity(updatedCandidate);
+        case 'Housing.HousingUnitRegistered':
+        case 'HousingUnitRegistered':
+        case 'Housing.StaffAssignedToUnit':
+        case 'StaffAssignedToUnit':
+        case 'Housing.StaffReleasedFromUnit':
+        case 'StaffReleasedFromUnit':
+          await HousingProjection.project(event);
           break;
-        }
 
         default:
           console.log(`Projection Engine: Ignoring unmapped event type "${type}"`);

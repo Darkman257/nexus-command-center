@@ -6,6 +6,8 @@ export interface NexusCommand {
   timestamp: string;
   expectedVersion?: number;
   payload: Record<string, unknown>;
+  scopes?: string[];
+  issuerProjects?: string[];
 }
 
 export interface CommandAuditRecord {
